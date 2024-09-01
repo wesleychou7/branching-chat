@@ -3,6 +3,8 @@ import Input from "@mui/joy/Input";
 import { useState } from "react";
 import IconButton from "@mui/joy/IconButton";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
+import InputBox from "./InputBox";
+import Messages from "./Messages";
 
 interface Message {
   role: "user" | "system";
@@ -21,39 +23,18 @@ export default function Chat() {
   ]);
 
   return (
-    <Box position="relative" border="1px solid black" height="97vh">
-      <Box>
-        {messages.map((message, index) => (
-          <Box
-            key={index}
-            display="flex"
-            flexDirection="column"
-            alignItems={message.role === "user" ? "flex-end" : "flex-start"}
-            marginBottom={3}
-          >
-            <Box
-              sx={{
-                backgroundColor: message.role === "user" ? "blue" : "gray",
-              }}
-              color="white"
-              padding={1}
-              borderRadius={10}
-            >
-              {message.content}
-            </Box>
-          </Box>
-        ))}
+    <Box
+      position="relative"
+      height="97vh"
+      display="flex"
+      flexDirection="column"
+    >
+      <Box height="100%" overflow="auto">
+        <Messages messages={messages} />
       </Box>
 
-      <Box position="absolute" bottom={10} width="100%">
-        <Input
-          placeholder="Message Twig"
-          endDecorator={
-            <IconButton size="sm">
-              <SendRoundedIcon />
-            </IconButton>
-          }
-        />
+      <Box width="100%">
+        <InputBox setMessages={setMessages} />
       </Box>
     </Box>
   );

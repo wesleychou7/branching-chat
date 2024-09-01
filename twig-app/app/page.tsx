@@ -1,7 +1,7 @@
 "use client";
 import Grid from "@mui/joy/Grid";
 import Box from "@mui/joy/Box";
-import Chat from "@/app/components/chat";
+import Chat from "@/app/components/Chat";
 
 export default function Home() {
   return (
