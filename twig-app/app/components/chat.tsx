@@ -1,8 +1,5 @@
 import Box from "@mui/joy/Box";
-import Input from "@mui/joy/Input";
 import { useState } from "react";
-import IconButton from "@mui/joy/IconButton";
-import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import InputBox from "./InputBox";
 import Messages from "./Messages";
 
