@@ -1,13 +1,22 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Typography, Paper, Button } from "@mui/material";
+import Box from "@mui/material/Box";
 import RelationGraph, {
   RGOptions,
   RGJsonData,
   RGNode,
   RelationGraphComponent,
 } from "relation-graph-react";
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState } from "@/app/store";
+import { addNode } from "./treeSlice";
+import Node from "./Node";
 
-const FamilyTreeComponent = () => {
+const Tree = () => {
+  const dispatch = useDispatch();
+  const nodes = useSelector((state: RootState) => state.tree.nodes);
+  const lines = useSelector((state: RootState) => state.tree.lines);
+
   const graphRef = useRef<RelationGraphComponent>(null);
 
   const [zoom, setZoom] = useState<number>(100); // a percentage
@@ -16,6 +25,7 @@ const FamilyTreeComponent = () => {
     allowShowMiniToolBar: false, // disable tool bar
     defaultJunctionPoint: "tb", // top, bottom
     defaultNodeShape: 1, // rectangle
+    defaultNodeWidth: 0,
     disableNodeClickEffect: true,
     disableLineClickEffect: true,
     defaultLineWidth: 2,
@@ -30,25 +40,8 @@ const FamilyTreeComponent = () => {
 
   const familyData: RGJsonData = {
     rootId: "grandparent",
-    nodes: [
-      { id: "grandparent", text: "grand" },
-      { id: "parent1", text: "Parent 1" },
-      { id: "parent2", text: "Parent 2" },
-      { id: "child1", text: "Child 1" },
-      { id: "child2", text: "Child 2" },
-      { id: "child3", text: "Child 3" },
-      { id: "grandchild1", text: "Grandchild 1" },
-      { id: "grandchild2", text: "Grandchild 2" },
-    ],
-    lines: [
-      { from: "grandparent", to: "parent1", color: "red" },
-      { from: "grandparent", to: "parent2" },
-      { from: "parent1", to: "child1" },
-      { from: "parent1", to: "child2" },
-      { from: "parent2", to: "child3" },
-      { from: "child1", to: "grandchild1" },
-      { from: "child1", to: "grandchild2" },
-    ],
+    nodes: nodes,
+    lines: lines,
   };
 
   // initialize graph and set options
@@ -66,10 +59,10 @@ const FamilyTreeComponent = () => {
       onZoomChange(event);
     };
 
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
   //
@@ -95,19 +88,22 @@ const FamilyTreeComponent = () => {
   }, [zoom]);
 
   const NodeSlot: React.FC<{ node: RGNode }> = ({ node }) => {
-    return <Button>{node.text}</Button>;
+    return <Node id={node.id} text={node.text} />
+    // return <Button>{node.text}</Button>
   };
 
   return (
     <div style={{ width: "100%", height: "100vh" }}>
-      <div>{zoom}</div>
-      <RelationGraph
-        ref={graphRef}
-        options={graphOptions}
-        nodeSlot={NodeSlot}
-      />
+      {/* <div>{zoom}</div> */}
+
+        <RelationGraph
+          ref={graphRef}
+          options={graphOptions}
+          nodeSlot={NodeSlot}
+        />
+
     </div>
   );
 };
 
-export default FamilyTreeComponent;
+export default Tree;

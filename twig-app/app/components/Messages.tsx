@@ -1,16 +1,21 @@
 import Box from "@mui/joy/Box";
 import { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState } from "@/app/store";
 
 interface Message {
-  role: "user" | "system";
+  role: "user" | "assistant" | "system";
   content: string;
 }
 
-interface Props {
-  messages: Message[];
-}
+export default function Messages() {
+  const selectedNodeId = useSelector(
+    (state: RootState) => state.tree.selectedNodeId
+  );
+  const messages = useSelector(
+    (state: RootState) => state.tree.messages[selectedNodeId]
+  );
 
-export default function Messages({ messages }: Props) {
   return (
     <Box>
       {messages.map((message, index) => (
