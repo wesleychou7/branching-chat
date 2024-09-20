@@ -25,7 +25,6 @@ const Tree = () => {
     allowShowMiniToolBar: false, // disable tool bar
     defaultJunctionPoint: "tb", // top, bottom
     defaultNodeShape: 1, // rectangle
-    defaultNodeWidth: 0,
     disableNodeClickEffect: true,
     disableLineClickEffect: true,
     defaultLineWidth: 2,
@@ -88,20 +87,16 @@ const Tree = () => {
   }, [zoom]);
 
   const NodeSlot: React.FC<{ node: RGNode }> = ({ node }) => {
-    return <Node id={node.id} text={node.text} />
-    // return <Button>{node.text}</Button>
+    return <Node id={node.id} text={node.text} />;
   };
 
   return (
     <div style={{ width: "100%", height: "100vh" }}>
-      {/* <div>{zoom}</div> */}
-
-        <RelationGraph
-          ref={graphRef}
-          options={graphOptions}
-          nodeSlot={NodeSlot}
-        />
-
+      <RelationGraph
+        ref={graphRef}
+        options={graphOptions}
+        nodeSlot={NodeSlot}
+      />
     </div>
   );
 };

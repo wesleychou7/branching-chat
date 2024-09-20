@@ -3,23 +3,23 @@ import Input from "@mui/joy/Input";
 import { useState } from "react";
 import IconButton from "@mui/joy/IconButton";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "@/app/store";
+import { addMessage } from "./treeSlice";
 
-interface Props {
-  setMessages: React.Dispatch<React.SetStateAction<any>>;
-}
-
-export default function InputBox({ setMessages }: Props) {
+export default function InputBox() {
+  const dispatch = useDispatch();
+  
+  const selectedNodeId = useSelector(
+    (state: RootState) => state.tree.selectedNodeId
+  );
   const [value, setValue] = useState<string>("");
 
   const sendMessage = () => {
     if (value !== "") {
-      setMessages((prevMessages: any) => [
-        ...prevMessages,
-        { role: "user", content: value },
-        { role: "system", content: "Hello! How can I help you today?" },
-      ]);
+      const message = { id: selectedNodeId, role: "user", content: value };
+      dispatch(addMessage(message));
     }
-
     setValue("");
   };
   

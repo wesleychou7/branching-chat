@@ -30,8 +30,8 @@ export const treeSlice = createSlice({
   name: "tree",
   initialState: initialState,
   reducers: {
-    addNode(state, action: PayloadAction<string>) {
-      const newId = (state.latestId + 1).toString();
+    addNode(state) {
+      const newId = (Number(state.latestId) + 1).toString();
 
       state.nodes.push({
         id: newId,
@@ -39,11 +39,13 @@ export const treeSlice = createSlice({
       });
 
       state.lines.push({
-        from: action.payload,
+        from: state.selectedNodeId,
         to: newId,
       });
 
       state.latestId = newId;
+      state.selectedNodeId = newId;
+      state.messages[newId] = [];
     },
     addMessage(
       state,

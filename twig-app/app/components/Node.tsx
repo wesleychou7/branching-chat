@@ -18,7 +18,7 @@ const Node = ({ id, text }: Props) => {
 
   return (
     <Button onClick={onClick} sx={{ width: 150 }}>
-      {text} {id}
+      {text}
     </Button>
   );
 };
