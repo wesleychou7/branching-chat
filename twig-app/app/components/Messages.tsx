@@ -2,14 +2,10 @@ import Box from "@mui/joy/Box";
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "@/app/store";
+import { selectMessages } from "./treeSlice";
 
 export default function Messages() {
-  const selectedNodeId = useSelector(
-    (state: RootState) => state.tree.selectedNodeId
-  );
-  const messages = useSelector(
-    (state: RootState) => state.tree.messages[selectedNodeId]
-  );
+  const messages = useSelector(selectMessages);
 
   return (
     <Box>
