@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { store } from "@/app/store";
 import { Provider } from "react-redux";
 import { APIContextProvider } from "@/app/context/APIContext";
+import "./styles.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
