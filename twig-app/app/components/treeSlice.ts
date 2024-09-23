@@ -8,7 +8,7 @@ type Line = {
 
 type Message = {
   role: string;
-  content: string;
+  content: string | null;
 };
 
 type Tree = {
@@ -67,7 +67,7 @@ export const treeSlice = createSlice({
     },
     addMessage(
       state,
-      action: PayloadAction<{ id: string; role: string; content: string }>
+      action: PayloadAction<{ id: string; role: string; content: string | null }>
     ) {
       state.tree[action.payload.id].messages.push({
         role: action.payload.role,

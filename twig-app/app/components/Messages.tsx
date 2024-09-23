@@ -1,34 +1,47 @@
 import Box from "@mui/joy/Box";
-import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import type { RootState } from "@/app/store";
 import { selectMessages } from "./treeSlice";
+import { marked } from "marked";
 
 export default function Messages() {
   const messages = useSelector(selectMessages);
 
+  const userStyle = {
+    backgroundColor: "blue",
+    color: "white",
+  };
+
+  const assistantStyle = {
+    backgroundColor: "none",
+    color: "black",
+  };
+
   return (
     <Box>
-      {messages.map((message, index) => (
-        <Box
-          key={index}
-          display="flex"
-          flexDirection="column"
-          alignItems={message.role === "user" ? "flex-end" : "flex-start"}
-          marginBottom={3}
-        >
+      {messages
+        .filter((message) => message.role !== "system")
+        .map((message, index) => (
           <Box
-            sx={{
-              backgroundColor: message.role === "user" ? "blue" : "gray",
-            }}
-            color="white"
-            padding={1}
-            borderRadius={10}
+            key={index}
+            display="flex"
+            flexDirection="column"
+            alignItems={message.role === "user" ? "flex-end" : "flex-start"}
+            marginBottom={3}
           >
-            {message.content}
+            <Box
+              sx={message.role === "user" ? userStyle : assistantStyle}
+              padding={1}
+              borderRadius={10}
+            >
+              <Box
+                margin={0}
+                dangerouslySetInnerHTML={{
+                  __html: marked.parse(message.content || ""),
+                }}
+              />
+            </Box>
           </Box>
-        </Box>
-      ))}
+        ))}
     </Box>
   );
 }
