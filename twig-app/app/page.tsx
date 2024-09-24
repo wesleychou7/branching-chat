@@ -3,6 +3,7 @@ import Grid from "@mui/joy/Grid";
 import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
 import Chat from "@/app/components/Chat";
+import Sidebar from "@/app/components/Sidebar";
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "@/app/store";
@@ -23,11 +24,9 @@ export default function Home() {
     return (
       <Grid container sx={{ flexGrow: 1 }}>
         <Grid sm={3} md={3}>
-          <Box position="relative" height="100%">
-            <Box position="absolute" bottom={0} left={0} marginLeft={1}>
-              {selectedNodeId}
-            </Box>
-          </Box>
+          <Sidebar />
+
+          {selectedNodeId}
         </Grid>
         <Grid sm={6} md={6} sx={{ height: "100%" }}>
           <Chat />
@@ -51,7 +50,7 @@ export default function Home() {
     );
   } else {
     return (
-      <Grid container >
+      <Grid container>
         <Tree />
       </Grid>
     );

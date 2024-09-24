@@ -11,12 +11,16 @@ type Message = {
   content: string | null;
 };
 
-type Tree = {
-  [id: string]: {
-    // node id
-    parent: string | null; // parent node id
-    messages: Message[];
-  };
+export type Node = {
+  name: string; // node name. not id!
+  parent: string | null; // parent node id
+  children: string[]; // array of child node ids
+  messages: Message[];
+};
+
+export type Tree = {
+  // key is the node id
+  [id: string]: Node;
 };
 
 const initialState = {
@@ -29,15 +33,12 @@ const initialState = {
   // tree
   tree: {
     "0": {
-      // node id
+      name: "Chat 0",
       parent: null,
+      children: [],
       messages: [{ role: "system", content: "You are a helpful assistant." }],
     },
   } as Tree,
-
-  // messages: {
-  //   "0": [{ role: "system", content: "You are a helpful assistant." }],
-  // } as Messages,
 
   // others
   page: "chat" as "chat" | "tree",
@@ -61,13 +62,24 @@ export const treeSlice = createSlice({
         to: newId,
       });
 
-      state.tree[newId] = { parent: state.selectedNodeId, messages: [] };
+      state.tree[newId] = {
+        name: "Chat " + newId,
+        parent: state.selectedNodeId,
+        children: [],
+        messages: [],
+      };
+      
+      state.tree[state.selectedNodeId].children.push(newId);
       state.latestId = newId;
       state.selectedNodeId = newId;
     },
     addMessage(
       state,
-      action: PayloadAction<{ id: string; role: string; content: string | null }>
+      action: PayloadAction<{
+        id: string;
+        role: string;
+        content: string | null;
+      }>
     ) {
       state.tree[action.payload.id].messages.push({
         role: action.payload.role,
