@@ -1,3 +1,7 @@
 p {
   margin: 0; /* remove default margin */
 }
+
+body {
+  margin: 0;
+}
