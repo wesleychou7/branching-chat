@@ -13,7 +13,7 @@ const Chat = () => {
   return (
     <Box
       position="relative"
-      height="97vh"
+      // height="97vh"
       display="flex"
       flexDirection="column"
     >

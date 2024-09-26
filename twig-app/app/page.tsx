@@ -1,17 +1,16 @@
 "use client";
-import Grid from "@mui/joy/Grid";
+import Grid from "@mui/material/Grid2";
 import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
+import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
+import IconButton from "@mui/joy/IconButton";
 import Chat from "@/app/components/Chat";
-import Sidebar from "@/app/components/Sidebar";
+import SideBar from "@/app/components/SideBar";
+import MenuBar from "@/app/components/MenuBar";
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "@/app/store";
-
-import Tree from "./components/Tree";
 import { setPage, addNode } from "./components/treeSlice";
-
-// two pages: one for chat and one for tree
 
 export default function Home() {
   const dispatch = useDispatch();
@@ -20,39 +19,25 @@ export default function Home() {
     (state: RootState) => state.tree.selectedNodeId
   );
 
-  if (page === "chat") {
-    return (
-      <Grid container sx={{ flexGrow: 1 }}>
-        <Grid sm={3} md={3}>
-          <Sidebar />
+  const [sideBarOpen, setSideBarOpen] = useState<boolean>(false);
 
-          {selectedNodeId}
+  return (
+    <Grid container height="100vh">
+      {sideBarOpen && (
+        <Grid size={3}>
+          <SideBar setSideBarOpen={setSideBarOpen} />
         </Grid>
-        <Grid sm={6} md={6} sx={{ height: "100%" }}>
-          <Chat />
-        </Grid>
-        <Grid sm={3} md={3}>
-          <Box position="relative" height="100%">
-            <Box position="absolute" bottom={0} right={0} marginRight={1}>
-              <Button
-                onClick={() => dispatch(addNode())}
-                sx={{ marginRight: 3 }}
-              >
-                Branch
-              </Button>
-              <Button onClick={() => dispatch(setPage("tree"))}>
-                Tree View
-              </Button>
-            </Box>
+      )}
+
+      <Grid size={sideBarOpen ? 9 : 12} display="flex" flexDirection="column">
+        <MenuBar sideBarOpen={sideBarOpen} setSideBarOpen={setSideBarOpen} />
+
+        <Box display="flex" justifyContent="center">
+          <Box width={750}>
+            <Chat />
           </Box>
-        </Grid>
+        </Box>
       </Grid>
-    );
-  } else {
-    return (
-      <Grid container>
-        <Tree />
-      </Grid>
-    );
-  }
+    </Grid>
+  );
 }
