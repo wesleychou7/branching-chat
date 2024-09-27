@@ -1,31 +1,19 @@
 import Box from "@mui/joy/Box";
-import { useState } from "react";
 import InputBox from "./InputBox";
 import Messages from "./Messages";
 
-interface Message {
-  role: "user" | "assistant" | "system";
-  content: string;
-}
-
 const Chat = () => {
-
   return (
-    <Box
-      position="relative"
-      // height="97vh"
-      display="flex"
-      flexDirection="column"
-    >
-      <Box height="100%" overflow="auto">
+    <Box display="flex" flexDirection="column" height="100%">
+      <Box flexGrow={1}>
         <Messages />
       </Box>
 
-      <Box width="100%">
+      <Box mb={4}>
         <InputBox />
       </Box>
     </Box>
   );
-}
+};
 
 export default Chat;
