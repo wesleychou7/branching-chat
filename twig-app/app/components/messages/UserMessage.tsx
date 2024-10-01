@@ -6,7 +6,13 @@ interface Props {
 
 const UserMessage = ({ message }: Props) => {
   return (
-    <Box bgcolor="#eeeeee" color="black" padding={1.5} borderRadius={15}>
+    <Box
+      bgcolor="#eeeeee"
+      color="black"
+      padding={2}
+      borderRadius={15}
+      maxWidth={500}
+    >
       {message}
     </Box>
   );
