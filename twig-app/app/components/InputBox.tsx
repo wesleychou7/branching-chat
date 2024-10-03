@@ -88,7 +88,7 @@ export default function InputBox({ setInputBoxHeight }: Props) {
   useEffect(() => {
     if (inputBoxRef.current)
       setInputBoxHeight(inputBoxRef.current.offsetHeight);
-  }, [inputMessage]);
+  }, [inputMessage, setInputBoxHeight]);
 
   return (
     <Box ref={inputBoxRef} display="flex">
