@@ -24,7 +24,12 @@
     "react-redux": "^9.1.2",
     "react-textarea-autosize": "^8.5.3",
     "redux": "^5.0.1",
-    "relation-graph-react": "^2.2.3"
+    "rehype-katex": "^7.0.1",
+    "rehype-raw": "^7.0.0",
+    "relation-graph-react": "^2.2.3",
+    "remark-breaks": "^4.0.0",
+    "remark-gfm": "^4.0.0",
+    "remark-math": "^6.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",
