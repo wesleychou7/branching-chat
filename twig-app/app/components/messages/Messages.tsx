@@ -18,6 +18,8 @@ export default function Messages() {
             flexDirection="column"
             alignItems={message.role === "user" ? "flex-end" : "flex-start"}
             marginBottom={5}
+            whiteSpace="pre-wrap"
+            sx={{ wordBreak: "break-word" }}
           >
             {message.role === "user" ? (
               <UserMessage message={message.content} />

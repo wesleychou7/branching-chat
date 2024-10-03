@@ -36,7 +36,7 @@ const initialState = {
       name: "Chat 0",
       parent: null,
       children: [],
-      messages: [{ role: "system", content: "You are a helpful assistant." }],
+      messages: [{ role: "system", content: "You are a helpful assistant. Reformat mathematical equations into KaTeX-compatible syntax. Inline equations should be wrapped in single `$` symbols (e.g., `$a^2 + b^2 = c^2$`), and display equations should be wrapped in double `$$` symbols (e.g., `$$\frac{a}{b} = c$$`)." }],
     },
   } as Tree,
 

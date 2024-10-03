@@ -2,7 +2,13 @@ import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
 import { addNode } from "../treeSlice";
 import { useDispatch } from "react-redux";
-import { marked } from "marked";
+import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import remarkBreaks from "remark-breaks";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 
 interface Props {
   message: string | null;
@@ -13,17 +19,16 @@ const AssistantMessage = ({ message }: Props) => {
 
   return (
     <Box bgcolor="none" color="black" borderRadius={10}>
-      <Box
-        margin={0}
-        dangerouslySetInnerHTML={{
-          __html: marked.parse(message || ""),
-        }}
-      />
-      <Button onClick={() => dispatch(addNode())}>
-         Branch
-      </Button>
-    </Box>
-  );
+      <Box style={{ whiteSpace: "normal", lineHeight: "1.8" }}>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm, remarkBreaks, remarkMath]}
+          rehypePlugins={[rehypeRaw, rehypeKatex]}
+        >
+          {message}
+        </ReactMarkdown>
+      </Box>
+      <Button onClick={() => dispatch(addNode())}>Branch</Button>
+    </Box>  );
 };
 
 export default AssistantMessage;
