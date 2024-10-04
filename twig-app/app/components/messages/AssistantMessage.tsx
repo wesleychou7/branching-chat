@@ -14,8 +14,21 @@ interface Props {
   message: string | null;
 }
 
+const translateLaTex = (val: string | null): string => {
+  if (!val) return "";
+  if (val.indexOf("\\") == -1) return val;
+
+  return val
+    .replaceAll("\\(", "$$") // inline math
+    .replaceAll("\\)", "$$")
+    .replaceAll("\\[", "$$$") // display math
+    .replaceAll("\\]", "$$$");
+};
+
 const AssistantMessage = ({ message }: Props) => {
   const dispatch = useDispatch();
+
+  console.log(translateLaTex(message)); // Check the output here
 
   return (
     <Box bgcolor="none" color="black" borderRadius={10}>
@@ -24,11 +37,12 @@ const AssistantMessage = ({ message }: Props) => {
           remarkPlugins={[remarkGfm, remarkBreaks, remarkMath]}
           rehypePlugins={[rehypeRaw, rehypeKatex]}
         >
-          {message}
+          {translateLaTex(message)}
         </ReactMarkdown>
       </Box>
       <Button onClick={() => dispatch(addNode())}>Branch</Button>
-    </Box>  );
+    </Box>
+  );
 };
 
 export default AssistantMessage;
