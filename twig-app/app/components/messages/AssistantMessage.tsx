@@ -9,6 +9,7 @@ import remarkMath from "remark-math";
 import remarkBreaks from "remark-breaks";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
+import "./AssistantMessage.css";
 
 interface Props {
   message: string | null;
@@ -27,8 +28,6 @@ const translateLaTex = (val: string | null): string => {
 
 const AssistantMessage = ({ message }: Props) => {
   const dispatch = useDispatch();
-
-  console.log(translateLaTex(message)); // Check the output here
 
   return (
     <Box bgcolor="none" color="black" borderRadius={10}>
