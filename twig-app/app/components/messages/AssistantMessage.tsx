@@ -1,7 +1,8 @@
 import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
 import { addNode } from "../treeSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "@/app/store";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
@@ -13,6 +14,7 @@ import "./AssistantMessage.css";
 
 interface Props {
   message: string | null;
+  streaming?: boolean;
 }
 
 const translateLaTex = (val: string | null): string => {
@@ -26,7 +28,7 @@ const translateLaTex = (val: string | null): string => {
     .replaceAll("\\]", "$$$");
 };
 
-const AssistantMessage = ({ message }: Props) => {
+const AssistantMessage = ({ message, streaming = false }: Props) => {
   const dispatch = useDispatch();
 
   return (
@@ -39,7 +41,9 @@ const AssistantMessage = ({ message }: Props) => {
           {translateLaTex(message)}
         </ReactMarkdown>
       </Box>
-      <Button onClick={() => dispatch(addNode())}>Branch</Button>
+      {!streaming && (
+        <Button onClick={() => dispatch(addNode())}>Branch</Button>
+      )}
     </Box>
   );
 };

@@ -3,9 +3,16 @@ import UserMessage from "./UserMessage";
 import AssistantMessage from "./AssistantMessage";
 import { useSelector } from "react-redux";
 import { selectMessages } from "../treeSlice";
+import type { RootState } from "@/app/store";
 
 export default function Messages() {
   const messages = useSelector(selectMessages);
+  const streaming = useSelector((state: RootState) => {
+    return state.message.streaming;
+  });
+  const streamedMessage = useSelector((state: RootState) => {
+    return state.message.streamedMessage;
+  });
 
   return (
     <Box>
@@ -28,6 +35,9 @@ export default function Messages() {
             )}
           </Box>
         ))}
+      {streaming && (
+        <AssistantMessage message={streamedMessage} streaming={true} />
+      )}
     </Box>
   );
 }

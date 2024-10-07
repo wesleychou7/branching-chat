@@ -6,22 +6,37 @@ import { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { selectMessages, addMessage } from "./treeSlice";
-import { useAPIContext } from "@/app/context/APIContext";
+import {
+  appendStreamedMessage,
+  clearStreamedMessage,
+  setStreaming,
+} from "@/app/components/messages/messageSlice";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import TextareaAutosize from "react-textarea-autosize";
+import OpenAI from "openai";
 
 interface Props {
   setInputBoxHeight: React.Dispatch<React.SetStateAction<number>>;
 }
 
+const openai = new OpenAI({
+    // apiKey: process.env.OPENAI_API_KEY,
+  apiKey:
+    "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",
+  dangerouslyAllowBrowser: true,
+});
+
 export default function InputBox({ setInputBoxHeight }: Props) {
   const dispatch = useDispatch();
-  const APIContext = useAPIContext();
+  // const APIContext = useAPIContext();
   const selectedNodeId = useSelector(
     (state: RootState) => state.tree.selectedNodeId
   );
-
+  const streamedMessage = useSelector((state: RootState) => {
+    return state.message.streamedMessage;
+  });
   const messages = useSelector(selectMessages);
+
   const [inputMessage, setInputMessage] = useState<string>("");
   const [validInput, setValidInput] = useState<boolean>(false);
 
@@ -42,7 +57,7 @@ export default function InputBox({ setInputBoxHeight }: Props) {
     }
   }, [inputMessage]);
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (validInput) {
       const message = {
         id: selectedNodeId,
@@ -53,26 +68,40 @@ export default function InputBox({ setInputBoxHeight }: Props) {
     }
     setInputMessage("");
 
-    APIContext?.chat.completions
-      .create({
-        model: "gpt-4o-mini",
-        messages: [
-          ...(messages as ChatCompletionMessageParam[]),
-          {
-            role: "user",
-            content: inputMessage,
-          },
-        ],
-      })
-      ?.then((response) => {
-        dispatch(
-          addMessage({
-            id: selectedNodeId,
-            role: "assistant",
-            content: response.choices[0].message.content,
-          })
-        );
-      });
+    const stream = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        ...(messages as ChatCompletionMessageParam[]),
+        {
+          role: "user",
+          content: inputMessage,
+        },
+      ],
+      stream: true,
+    });
+
+    if (stream) {
+      dispatch(clearStreamedMessage());
+      dispatch(setStreaming(true));
+
+      let response = "";
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content || "";
+        if (content) {
+          dispatch(appendStreamedMessage(content));
+          response += content;
+        }
+      }
+
+      dispatch(
+        addMessage({
+          id: selectedNodeId,
+          role: "assistant",
+          content: response,
+        })
+      );
+      dispatch(setStreaming(false));
+    }
   };
 
   const handleInput = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
