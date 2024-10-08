@@ -1,8 +1,7 @@
 import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
 import { addNode } from "../treeSlice";
-import { useDispatch, useSelector } from "react-redux";
-import type { RootState } from "@/app/store";
+import { useDispatch } from "react-redux";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
@@ -11,6 +10,7 @@ import remarkBreaks from "remark-breaks";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import "./AssistantMessage.css";
+import AssistantButtons from "./AssistantButtons";
 
 interface Props {
   message: string | null;
@@ -29,11 +29,11 @@ const translateLaTex = (val: string | null): string => {
 };
 
 const AssistantMessage = ({ message, streaming = false }: Props) => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch()
 
   return (
     <Box bgcolor="none" color="black" borderRadius={10}>
-      <Box style={{ whiteSpace: "normal", lineHeight: "1.8" }}>
+      <Box pl={0.5} style={{ whiteSpace: "normal", lineHeight: "1.8" }}>
         <ReactMarkdown
           remarkPlugins={[remarkGfm, remarkBreaks, remarkMath]}
           rehypePlugins={[rehypeRaw, rehypeKatex]}
@@ -41,9 +41,10 @@ const AssistantMessage = ({ message, streaming = false }: Props) => {
           {translateLaTex(message)}
         </ReactMarkdown>
       </Box>
-      {!streaming && (
-        <Button onClick={() => dispatch(addNode())}>Branch</Button>
-      )}
+      {!streaming && 
+        // <Button onClick={() => dispatch(addNode())}>Branch</Button>
+        <AssistantButtons message={message}/>
+      }
     </Box>
   );
 };
