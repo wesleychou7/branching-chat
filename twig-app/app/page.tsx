@@ -12,40 +12,41 @@ export default function Home() {
   const [inputBoxHeight, setInputBoxHeight] = useState<number>(0);
 
   return (
-    <Grid container height="100vh">
-      {sideBarOpen && (
-        <Grid size={3}>
-          <SideBar setSideBarOpen={setSideBarOpen} />
-        </Grid>
-      )}
-
-      <Grid size={sideBarOpen ? 9 : 12}>
-        <Box
-          height={`calc(99vh - ${inputBoxHeight}px)`}
-          overflow="auto"
-        >
-          <Box position="sticky" top="0" zIndex={0}>
-            <MenuBar
-              sideBarOpen={sideBarOpen}
-              setSideBarOpen={setSideBarOpen}
-            />
-          </Box>
-          <Box display="flex" justifyContent="center" flexGrow={1}>
-            <Box width={750}>
-              <Messages />
+    <Box>
+      <Grid container>
+        {sideBarOpen && (
+          <Grid size={3}>
+            <SideBar setSideBarOpen={setSideBarOpen} />
+          </Grid>
+        )}
+        <Grid size={sideBarOpen ? 9 : 12}>
+          <Box
+            height={`calc(99vh - ${inputBoxHeight}px)`}
+            overflow="auto"
+          >
+            <Box position="sticky" top="0" zIndex={0}>
+              <MenuBar
+                sideBarOpen={sideBarOpen}
+                setSideBarOpen={setSideBarOpen}
+              />
+            </Box>
+            <Box display="flex" justifyContent="center" flexGrow={1}>
+              <Box width={750}>
+                <Messages />
+              </Box>
             </Box>
           </Box>
-        </Box>
-        <Box
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
-        >
-          <Box width={750}>
-            <InputBox setInputBoxHeight={setInputBoxHeight}/>
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+          >
+            <Box width={750}>
+              <InputBox setInputBoxHeight={setInputBoxHeight}/>
+            </Box>
           </Box>
-        </Box>
+        </Grid>
       </Grid>
-    </Grid>
+    </Box>
   );
 }
