@@ -29,7 +29,7 @@ const translateLaTex = (val: string | null): string => {
 };
 
 const AssistantMessage = ({ message, streaming = false }: Props) => {
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
   return (
     <Box bgcolor="none" color="black" borderRadius={10}>
@@ -38,13 +38,13 @@ const AssistantMessage = ({ message, streaming = false }: Props) => {
           remarkPlugins={[remarkGfm, remarkBreaks, remarkMath]}
           rehypePlugins={[rehypeRaw, rehypeKatex]}
         >
-          {translateLaTex(message)}
+          {`${translateLaTex(message)}${streaming ? " ▎" : ""}`}  
         </ReactMarkdown>
       </Box>
-      {!streaming && 
+      {!streaming && (
         // <Button onClick={() => dispatch(addNode())}>Branch</Button>
-        <AssistantButtons message={message}/>
-      }
+        <AssistantButtons message={message} />
+      )}
     </Box>
   );
 };
