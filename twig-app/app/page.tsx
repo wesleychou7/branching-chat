@@ -60,39 +60,37 @@ export default function Home() {
   }, [awaitingResponse]);
 
   return (
-    <Box>
-      <Grid container>
-        {sideBarOpen && (
-          <Grid size={3}>
-            <SideBar setSideBarOpen={setSideBarOpen} />
-          </Grid>
-        )}
-        <Grid size={sideBarOpen ? 9 : 12}>
-          <Box
-            ref={messagesContainerRef}
-            height={`calc(100vh - ${inputBoxHeight}px)`}
-            overflow="auto"
-          >
-            <Box position="sticky" top="0" zIndex={0}>
-              <MenuBar
-                sideBarOpen={sideBarOpen}
-                setSideBarOpen={setSideBarOpen}
-              />
-            </Box>
-            <Box display="flex" justifyContent="center" flexGrow={1}>
-              <Box width={750}>
-                <Messages />
-              </Box>
-            </Box>
-            <div ref={bottomOfMessagesRef}></div>
-          </Box>
-          <Box display="flex" flexDirection="column" alignItems="center">
-            <Box width={750}>
-              <InputBox setInputBoxHeight={setInputBoxHeight} />
-            </Box>
-          </Box>
+    <Grid container>
+      {sideBarOpen && (
+        <Grid size={3}>
+          <SideBar setSideBarOpen={setSideBarOpen} />
         </Grid>
+      )}
+      <Grid size={sideBarOpen ? 9 : 12}>
+        <Box
+          ref={messagesContainerRef}
+          height={`calc(100vh - ${inputBoxHeight}px)`}
+          overflow="auto"
+        >
+          <Box position="sticky" top="0" zIndex={0}>
+            <MenuBar
+              sideBarOpen={sideBarOpen}
+              setSideBarOpen={setSideBarOpen}
+            />
+          </Box>
+          <Box display="flex" justifyContent="center" flexGrow={1}>
+            <Box width={750}>
+              <Messages />
+            </Box>
+          </Box>
+          <div ref={bottomOfMessagesRef}></div>
+        </Box>
+        <Box display="flex" flexDirection="column" alignItems="center">
+          <Box width={750}>
+            <InputBox setInputBoxHeight={setInputBoxHeight} />
+          </Box>
+        </Box>
       </Grid>
-    </Box>
+    </Grid>
   );
 }

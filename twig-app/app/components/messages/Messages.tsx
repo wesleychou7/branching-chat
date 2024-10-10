@@ -27,6 +27,7 @@ export default function Messages() {
             marginBottom={5}
             whiteSpace="pre-wrap"
             sx={{ wordBreak: "break-word" }}
+            position="relative" // need for fixing LaTex absolute position bug
           >
             {message.role === "user" ? (
               <UserMessage message={message.content} />
@@ -36,7 +37,9 @@ export default function Messages() {
           </Box>
         ))}
       {streaming && (
-        <AssistantMessage message={streamedMessage} streaming={true} />
+        <Box position="relative">
+          <AssistantMessage message={streamedMessage} streaming={true} />
+        </Box>
       )}
     </Box>
   );
