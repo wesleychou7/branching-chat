@@ -31,8 +31,8 @@ export default function Home() {
 
   // listen to scroll event
   useEffect(() => {
+    const container = messagesContainerRef.current;
     const handleScroll = () => {
-      const container = messagesContainerRef.current;
       if (container) {
         const scrolledTo =
           (container.scrollTop ?? 0) + (container.clientHeight ?? 0);
@@ -50,11 +50,7 @@ export default function Home() {
       messagesContainerRef.current.addEventListener("scroll", handleScroll);
 
     return () => {
-      if (messagesContainerRef.current)
-        messagesContainerRef.current.removeEventListener(
-          "scroll",
-          handleScroll
-        );
+      if (container) container.removeEventListener("scroll", handleScroll);
     };
   }, [previousScrollTop]);
 
