@@ -1,7 +1,7 @@
 import Box from "@mui/joy/Box";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import IconButton from "@mui/joy/IconButton";
-import SendRoundedIcon from "@mui/icons-material/SendRounded";
+import ArrowUpwardRoundedIcon from "@mui/icons-material/ArrowUpwardRounded";
 import { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
@@ -9,6 +9,7 @@ import { selectMessages, addMessage } from "./treeSlice";
 import {
   appendStreamedMessage,
   clearStreamedMessage,
+  setAwaitingResponse,
   setStreaming,
 } from "@/app/components/messages/messageSlice";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
@@ -20,7 +21,7 @@ interface Props {
 }
 
 const openai = new OpenAI({
-    // apiKey: process.env.OPENAI_API_KEY,
+  // apiKey: process.env.OPENAI_API_KEY,
   apiKey:
     "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",
   dangerouslyAllowBrowser: true,
@@ -28,13 +29,9 @@ const openai = new OpenAI({
 
 export default function InputBox({ setInputBoxHeight }: Props) {
   const dispatch = useDispatch();
-  // const APIContext = useAPIContext();
   const selectedNodeId = useSelector(
     (state: RootState) => state.tree.selectedNodeId
   );
-  const streamedMessage = useSelector((state: RootState) => {
-    return state.message.streamedMessage;
-  });
   const messages = useSelector(selectMessages);
 
   const [inputMessage, setInputMessage] = useState<string>("");
@@ -67,6 +64,7 @@ export default function InputBox({ setInputBoxHeight }: Props) {
       dispatch(addMessage(message));
     }
     setInputMessage("");
+    dispatch(setAwaitingResponse(true));
 
     const stream = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -101,6 +99,7 @@ export default function InputBox({ setInputBoxHeight }: Props) {
         })
       );
       dispatch(setStreaming(false));
+      dispatch(setAwaitingResponse(false));
     }
   };
 
@@ -120,27 +119,54 @@ export default function InputBox({ setInputBoxHeight }: Props) {
   }, [inputMessage, setInputBoxHeight]);
 
   return (
-    <Box ref={inputBoxRef} display="flex">
-      <IconButton size="sm">
-        <AttachFileIcon />
-      </IconButton>
+    <Box ref={inputBoxRef} bgcolor="transparent">
+      <Box
+        display="flex"
+        alignItems="center"
+        bgcolor="#eeeeee"
+        borderRadius={30}
+        py={1}
+        pl={3}
+        pr={1}
+      >
+        {/* <IconButton size="sm">
+          <AttachFileIcon />
+        </IconButton> */}
+        <TextareaAutosize
+          autoFocus
+          maxRows={20}
+          style={{
+            width: "100%",
+            padding: 3,
+            border: "none",
+            overflowY: "auto",
+            backgroundColor: "#eeeeee",
+            resize: "none",
+            outline: "none",
+            fontFamily: "inherit",
+            fontSize: "inherit",
+          }}
+          placeholder="Send a message"
+          value={inputMessage}
+          onKeyDown={handleInput}
+          onChange={(e) => setInputMessage(e.target.value)}
+        />
+        <IconButton
+          size="sm"
+          onClick={sendMessage}
+          disabled={!validInput}
+          style={{
+            backgroundColor: validInput ? "black" : "#bdbdbd",
+            borderRadius: 100,
+          }}
+        >
+          <ArrowUpwardRoundedIcon sx={{ color: "white" }} />
+        </IconButton>
+      </Box>
 
-      <TextareaAutosize
-        maxRows={12}
-        style={{
-          width: "100%",
-          padding: 3,
-          border: "1px solid #ccc",
-          overflowY: "auto",
-        }}
-        value={inputMessage}
-        onKeyDown={handleInput}
-        onChange={(e) => setInputMessage(e.target.value)}
-      />
-
-      <IconButton size="sm" onClick={sendMessage} disabled={!validInput}>
-        <SendRoundedIcon />
-      </IconButton>
+      <Box display="flex" justifyContent="center" pt={3}>
+          {/* message under the input box */}
+      </Box>
     </Box>
   );
 }
