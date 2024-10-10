@@ -15,7 +15,7 @@ export default function Messages() {
   });
 
   return (
-    <Box>
+    <Box mb={8}>
       {messages
         .filter((message) => message.role !== "system")
         .map((message, index) => (
