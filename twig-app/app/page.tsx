@@ -21,13 +21,16 @@ export default function Home() {
     (state: RootState) => state.message.awaitingResponse
   );
   const messages = useSelector(selectMessages);
+  const streamedMessage = useSelector((state: RootState) => {
+    return state.message.streamedMessage;
+  })
   const bottomOfMessagesRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // automatically scroll to bottom
   useEffect(() => {
     if (reachedBottom) bottomOfMessagesRef.current?.scrollIntoView();
-  }, [messages, reachedBottom]);
+  }, [messages, streamedMessage, reachedBottom]);
 
   // listen to scroll event
   useEffect(() => {
