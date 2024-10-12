@@ -1,6 +1,5 @@
+import React from "react";
 import Box from "@mui/joy/Box";
-import Button from "@mui/joy/Button";
-import { addNode } from "../treeSlice";
 import { useDispatch } from "react-redux";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
@@ -11,6 +10,7 @@ import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import "./AssistantMessage.css";
 import AssistantButtons from "./AssistantButtons";
+import CodeHighlighter from "./CodeHighlighter";
 
 interface Props {
   message: string | null;
@@ -37,14 +37,23 @@ const AssistantMessage = ({ message, streaming = false }: Props) => {
         <ReactMarkdown
           remarkPlugins={[remarkGfm, remarkBreaks, remarkMath]}
           rehypePlugins={[rehypeRaw, rehypeKatex]}
+          components={{
+            code: (props) => {
+              const { children, className } = props;
+              const match = /language-(\w+)/.exec(className || ""); // extract code language from className
+              return (
+                <CodeHighlighter
+                  language={match ? match[1] : "text"} // default to normal text if no language
+                  code={String(children)}
+                />
+              );
+            },
+          }}
         >
-          {`${translateLaTex(message)}${streaming ? " ▎" : ""}`}  
+          {`${translateLaTex(message)}${streaming ? " ▎" : ""}`}
         </ReactMarkdown>
       </Box>
-      {!streaming && (
-        // <Button onClick={() => dispatch(addNode())}>Branch</Button>
-        <AssistantButtons message={message} />
-      )}
+      {!streaming && <AssistantButtons message={message} />}
     </Box>
   );
 };
