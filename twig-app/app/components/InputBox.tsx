@@ -126,7 +126,7 @@ export default function InputBox({ setInputBoxHeight }: Props) {
         bgcolor="#eeeeee"
         borderRadius={30}
         py={1}
-        pl={3}
+        pl={2.5}
         pr={1}
       >
         {/* <IconButton size="sm">

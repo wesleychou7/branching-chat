@@ -10,7 +10,7 @@ const UserMessage = ({ message }: Props) => {
       bgcolor="#eeeeee"
       color="black"
       padding={2}
-      borderRadius={15}
+      borderRadius={100}
       maxWidth={500}
     >
       {message}
