@@ -1,0 +1,11 @@
+.refractor {
+   background: #252526 !important;
+   font-size: 14px !important; /* this isn't applying for some reason */
+   line-height: 23px !important;
+   border-bottom-left-radius: 10px !important;
+   border-bottom-right-radius: 10px !important;
+   max-width: 750px !important;
+   overflow: auto !important;
+   padding: 15px !important;
+   margin: 0px !important;
+ }
