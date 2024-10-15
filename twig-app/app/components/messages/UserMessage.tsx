@@ -9,7 +9,8 @@ const UserMessage = ({ message }: Props) => {
     <Box
       bgcolor="#eeeeee"
       color="black"
-      padding={2}
+      py={1.5}
+      px={2}
       borderRadius={100}
       maxWidth={500}
     >

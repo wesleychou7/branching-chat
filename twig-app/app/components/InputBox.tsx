@@ -33,6 +33,9 @@ export default function InputBox({ setInputBoxHeight }: Props) {
     (state: RootState) => state.tree.selectedNodeId
   );
   const messages = useSelector(selectMessages);
+  const awaitingResponse = useSelector(
+    (state: RootState) => state.message.awaitingResponse
+  );
 
   const [inputMessage, setInputMessage] = useState<string>("");
   const [validInput, setValidInput] = useState<boolean>(false);
@@ -150,6 +153,7 @@ export default function InputBox({ setInputBoxHeight }: Props) {
           value={inputMessage}
           onKeyDown={handleInput}
           onChange={(e) => setInputMessage(e.target.value)}
+          disabled={awaitingResponse}
         />
         <IconButton
           size="sm"
@@ -165,7 +169,7 @@ export default function InputBox({ setInputBoxHeight }: Props) {
       </Box>
 
       <Box display="flex" justifyContent="center" pt={3}>
-          {/* message under the input box */}
+        {/* message under the input box */}
       </Box>
     </Box>
   );
