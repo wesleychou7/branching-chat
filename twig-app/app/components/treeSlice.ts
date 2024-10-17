@@ -48,6 +48,9 @@ const initialState = {
   // others
   page: "chat" as "chat" | "tree",
   selectedNodeId: "0",
+
+  selectedChatId: null as number | null,
+  updateMessagesFlag: 0, // flag for useEffect dependency to indicate that messages have to be re-read from the database
 };
 
 export const treeSlice = createSlice({
@@ -97,11 +100,23 @@ export const treeSlice = createSlice({
     setSelectedNodeId(state, action: PayloadAction<string>) {
       state.selectedNodeId = action.payload;
     },
+    setSelectedChatId(state, action: PayloadAction<number | null>) {
+      state.selectedChatId = action.payload;
+    },
+    setUpdateMessagesFlag(state) {
+      state.updateMessagesFlag = state.updateMessagesFlag + 1;
+    },
   },
 });
 
-export const { addNode, addMessage, setPage, setSelectedNodeId } =
-  treeSlice.actions;
+export const {
+  addNode,
+  addMessage,
+  setPage,
+  setSelectedNodeId,
+  setSelectedChatId,
+  setUpdateMessagesFlag,
+} = treeSlice.actions;
 
 // Selectors
 

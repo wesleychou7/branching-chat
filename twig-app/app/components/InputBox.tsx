@@ -6,7 +6,7 @@ import ArrowUpwardRoundedIcon from "@mui/icons-material/ArrowUpwardRounded";
 import { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
-import { selectMessages, addMessage } from "./treeSlice";
+import { selectMessages, addMessage, setUpdateMessagesFlag } from "./treeSlice";
 import {
   appendStreamedMessage,
   clearStreamedMessage,
@@ -16,6 +16,7 @@ import {
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import TextareaAutosize from "react-textarea-autosize";
 import OpenAI from "openai";
+import supabase from "@/app/supabase";
 
 interface Props {
   setInputBoxHeight: React.Dispatch<React.SetStateAction<number>>;
@@ -32,6 +33,9 @@ export default function InputBox({ setInputBoxHeight }: Props) {
   const dispatch = useDispatch();
   const selectedNodeId = useSelector(
     (state: RootState) => state.tree.selectedNodeId
+  );
+  const selectedChatId = useSelector(
+    (state: RootState) => state.tree.selectedChatId
   );
   const messages = useSelector(selectMessages);
   const awaitingResponse = useSelector(
@@ -58,6 +62,14 @@ export default function InputBox({ setInputBoxHeight }: Props) {
     }
   }, [inputMessage]);
 
+  async function saveMessage(chat_id: number, role: string, content: string) {
+    const { error } = await supabase
+      .from("messages")
+      .insert({ chat_id: chat_id, role: role, content: content });
+    if (error) console.error(error);
+    else dispatch(setUpdateMessagesFlag());
+  }
+
   const sendMessage = async () => {
     if (validInput) {
       const message = {
@@ -66,6 +78,7 @@ export default function InputBox({ setInputBoxHeight }: Props) {
         content: inputMessage,
       };
       dispatch(addMessage(message));
+      saveMessage(selectedChatId!, message.role, message.content);
     }
     setInputMessage("");
     dispatch(setAwaitingResponse(true));
@@ -102,6 +115,7 @@ export default function InputBox({ setInputBoxHeight }: Props) {
           content: response,
         })
       );
+      saveMessage(selectedChatId!, "assistant", response);
       dispatch(setStreaming(false));
       dispatch(setAwaitingResponse(false));
     }
