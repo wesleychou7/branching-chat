@@ -137,9 +137,9 @@ export default function InputBox({ setInputBoxHeight }: Props) {
           borderRadius: 30,
           paddingLeft: 1.7,
           paddingRight: 1.7,
-          backgroundColor: "#e0e0e0",
+          backgroundColor: "#eeeeee",
           "&:hover": {
-            backgroundColor: "#d5d5d5",
+            backgroundColor: "#e0e0e0",
           },
         }}
       >
