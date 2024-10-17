@@ -1,5 +1,6 @@
 import Box from "@mui/joy/Box";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
+import ParkRoundedIcon from "@mui/icons-material/ParkRounded";
 import IconButton from "@mui/joy/IconButton";
 import ArrowUpwardRoundedIcon from "@mui/icons-material/ArrowUpwardRounded";
 import { useState, useRef, useEffect } from "react";
@@ -122,8 +123,30 @@ export default function InputBox({ setInputBoxHeight }: Props) {
   }, [inputMessage, setInputBoxHeight]);
 
   return (
-    <Box ref={inputBoxRef} bgcolor="transparent">
+    <Box
+      ref={inputBoxRef}
+      bgcolor="transparent"
+      display="flex"
+      alignItems="center"
+      pb={3}
+    >
+      <IconButton
+        sx={{
+          height: 48.5,
+          border: "none",
+          borderRadius: 30,
+          paddingLeft: 1.7,
+          paddingRight: 1.7,
+          backgroundColor: "#e0e0e0",
+          "&:hover": {
+            backgroundColor: "#d5d5d5",
+          },
+        }}
+      >
+        <ParkRoundedIcon sx={{ color: "green" }} />
+      </IconButton>
       <Box
+        ml={1}
         display="flex"
         alignItems="center"
         bgcolor="#eeeeee"
@@ -131,6 +154,7 @@ export default function InputBox({ setInputBoxHeight }: Props) {
         py={1}
         pl={2.5}
         pr={1}
+        width="100%"
       >
         {/* <IconButton size="sm">
           <AttachFileIcon />
@@ -166,10 +190,6 @@ export default function InputBox({ setInputBoxHeight }: Props) {
         >
           <ArrowUpwardRoundedIcon sx={{ color: "white" }} />
         </IconButton>
-      </Box>
-
-      <Box display="flex" justifyContent="center" pt={3}>
-        {/* message under the input box */}
       </Box>
     </Box>
   );
