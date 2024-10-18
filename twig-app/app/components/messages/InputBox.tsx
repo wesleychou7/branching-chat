@@ -1,12 +1,12 @@
 import Box from "@mui/joy/Box";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import ParkRoundedIcon from "@mui/icons-material/ParkRounded";
+import SquareRoundedIcon from '@mui/icons-material/SquareRounded';
 import IconButton from "@mui/joy/IconButton";
 import ArrowUpwardRoundedIcon from "@mui/icons-material/ArrowUpwardRounded";
 import { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
-import { selectMessages, addMessage, setUpdateMessagesFlag } from "./treeSlice";
 import {
   appendStreamedMessage,
   clearStreamedMessage,
@@ -18,8 +18,16 @@ import TextareaAutosize from "react-textarea-autosize";
 import OpenAI from "openai";
 import supabase from "@/app/supabase";
 
+type Message = {
+  role: string;
+  content: string | null;
+};
+
 interface Props {
   setInputBoxHeight: React.Dispatch<React.SetStateAction<number>>;
+  selectedChatID: number | null;
+  messages: Message[];
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }
 
 const openai = new OpenAI({
@@ -29,15 +37,13 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true,
 });
 
-export default function InputBox({ setInputBoxHeight }: Props) {
+export default function InputBox({
+  setInputBoxHeight,
+  selectedChatID,
+  messages,
+  setMessages,
+}: Props) {
   const dispatch = useDispatch();
-  const selectedNodeId = useSelector(
-    (state: RootState) => state.tree.selectedNodeId
-  );
-  const selectedChatId = useSelector(
-    (state: RootState) => state.tree.selectedChatId
-  );
-  const messages = useSelector(selectMessages);
   const awaitingResponse = useSelector(
     (state: RootState) => state.message.awaitingResponse
   );
@@ -67,18 +73,15 @@ export default function InputBox({ setInputBoxHeight }: Props) {
       .from("messages")
       .insert({ chat_id: chat_id, role: role, content: content });
     if (error) console.error(error);
-    else dispatch(setUpdateMessagesFlag());
   }
 
   const sendMessage = async () => {
     if (validInput) {
-      const message = {
-        id: selectedNodeId,
-        role: "user",
-        content: inputMessage,
-      };
-      dispatch(addMessage(message));
-      saveMessage(selectedChatId!, message.role, message.content);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { role: "user", content: inputMessage },
+      ]);
+      saveMessage(selectedChatID!, "user", inputMessage);
     }
     setInputMessage("");
     dispatch(setAwaitingResponse(true));
@@ -108,15 +111,12 @@ export default function InputBox({ setInputBoxHeight }: Props) {
         }
       }
 
-      dispatch(
-        addMessage({
-          id: selectedNodeId,
-          role: "assistant",
-          content: response,
-        })
-      );
-      saveMessage(selectedChatId!, "assistant", response);
+      await saveMessage(selectedChatID!, "assistant", response);
       dispatch(setStreaming(false));
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { role: "assistant", content: response },
+      ]);
       dispatch(setAwaitingResponse(false));
     }
   };
@@ -193,17 +193,30 @@ export default function InputBox({ setInputBoxHeight }: Props) {
           onChange={(e) => setInputMessage(e.target.value)}
           disabled={awaitingResponse}
         />
-        <IconButton
-          size="sm"
-          onClick={sendMessage}
-          disabled={!validInput}
-          style={{
-            backgroundColor: validInput ? "black" : "#bdbdbd",
-            borderRadius: 100,
-          }}
-        >
-          <ArrowUpwardRoundedIcon sx={{ color: "white" }} />
-        </IconButton>
+        {!awaitingResponse && (
+          <IconButton
+            size="sm"
+            onClick={sendMessage}
+            disabled={!validInput}
+            style={{
+              backgroundColor: validInput ? "green" : "#bdbdbd",
+              borderRadius: 100,
+            }}
+          >
+            <ArrowUpwardRoundedIcon sx={{ color: "white" }} />
+          </IconButton>
+        )}
+        {awaitingResponse && (
+          <IconButton
+            size="sm"
+            style={{
+              backgroundColor: "black",
+              borderRadius: 100,
+            }}
+          >
+            <SquareRoundedIcon sx={{ color: "white", fontSize: 15 }} />
+          </IconButton>
+        )}
       </Box>
     </Box>
   );

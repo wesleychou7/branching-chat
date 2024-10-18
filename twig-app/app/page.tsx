@@ -1,99 +1,67 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { selectMessages } from "./components/treeSlice";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import Grid from "@mui/material/Grid2";
 import Box from "@mui/joy/Box";
+import Button from "@mui/joy/Button/Button";
+import IconButton from "@mui/joy/IconButton";
 import SideBar from "@/app/components/SideBar";
 import MenuBar from "@/app/components/MenuBar";
 import Messages from "@/app/components/messages/Messages";
-import InputBox from "@/app/components/InputBox";
+import InputBox from "@/app/components/messages/InputBox";
+import Chat from "@/app/components/Chat";
+import { ReactFlow } from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
 
 export default function Home() {
+  const initialNodes = [
+    { id: "1", position: { x: 0, y: 0 }, data: { label: "1" } },
+    { id: "2", position: { x: 0, y: 100 }, data: { label: "2" } },
+  ];
+  const initialEdges = [{ id: "e1-2", source: "1", target: "2" }];
+
+  const [page, setPage] = useState<"chat" | "tree">("chat");
+
   const [sideBarOpen, setSideBarOpen] = useState<boolean>(false);
-  const [inputBoxHeight, setInputBoxHeight] = useState<number>(0);
-
-  // Automatic scrolling implementation
-  const [previousScrollTop, setPreviousScrollTop] = useState<number>(0);
-  const [reachedBottom, setReachedBottom] = useState<boolean>(false);
-  const awaitingResponse = useSelector(
-    (state: RootState) => state.message.awaitingResponse
-  );
-  const messages = useSelector(selectMessages);
-  const streamedMessage = useSelector((state: RootState) => {
-    return state.message.streamedMessage;
-  })
-  const bottomOfMessagesRef = useRef<HTMLDivElement>(null);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
-
-  // automatically scroll to bottom
-  useEffect(() => {
-    if (reachedBottom) bottomOfMessagesRef.current?.scrollIntoView();
-  }, [messages, streamedMessage, reachedBottom]);
-
-  // listen to scroll event
-  useEffect(() => {
-    const container = messagesContainerRef.current;
-    const handleScroll = () => {
-      if (container) {
-        const scrolledTo =
-          (container.scrollTop ?? 0) + (container.clientHeight ?? 0);
-        const isReachBottom = container.scrollHeight === scrolledTo;
-
-        // check if scroll is at the bottom
-        if (isReachBottom) setReachedBottom(true);
-        // Check if user scrolled up
-        if (container.scrollTop < previousScrollTop) setReachedBottom(false);
-
-        setPreviousScrollTop(container.scrollTop);
-      }
-    };
-    if (messagesContainerRef.current)
-      messagesContainerRef.current.addEventListener("scroll", handleScroll);
-
-    return () => {
-      if (container) container.removeEventListener("scroll", handleScroll);
-    };
-  }, [previousScrollTop]);
-
-  // automatically scroll to bottom when user enters new message
-  useEffect(() => {
-    if (awaitingResponse) setReachedBottom(true);
-  }, [awaitingResponse]);
+  const [selectedChatID, setSelectedChatID] = useState<number | null>(null);
 
   return (
     <Grid container>
       {sideBarOpen && (
-        <Grid size={3}>
-          <SideBar setSideBarOpen={setSideBarOpen} />
-        </Grid>
-      )}
-      <Grid size={sideBarOpen ? 9 : 12}>
         <Box
-          ref={messagesContainerRef}
-          height={`calc(100vh - ${inputBoxHeight}px)`}
-          overflow="auto"
+          position="absolute"
+          top={0}
+          left={0}
+          zIndex={1}
+          height="100vh"
+          width={300}
         >
-          <Box position="sticky" top="0" zIndex={0}>
-            <MenuBar
-              sideBarOpen={sideBarOpen}
-              setSideBarOpen={setSideBarOpen}
-            />
-          </Box>
-          <Box display="flex" justifyContent="center" flexGrow={1}>
-            <Box width={750}>
-              <Messages />
+          <SideBar
+            setSideBarOpen={setSideBarOpen}
+            selectedChatID={selectedChatID}
+            setSelectedChatID={setSelectedChatID}
+          />
+        </Box>
+      )}
+      <Box height="100vh" width="100vw">
+        {page === "tree" && (
+          <div>
+            <ReactFlow nodes={initialNodes} edges={initialEdges} />
+          </div>
+        )}
+        {page === "chat" && (
+          <div>
+            <Box position="absolute" top={0} left={0} right={0} zIndex={0}>
+              <MenuBar
+                sideBarOpen={sideBarOpen}
+                setSideBarOpen={setSideBarOpen}
+              />
             </Box>
-          </Box>
-          <div ref={bottomOfMessagesRef}></div>
-        </Box>
-        <Box display="flex" flexDirection="column" alignItems="center">
-          <Box width={750}>
-            <InputBox setInputBoxHeight={setInputBoxHeight} />
-          </Box>
-        </Box>
-      </Grid>
+            <Chat selectedChatID={selectedChatID} />
+          </div>
+        )}
+      </Box>
     </Grid>
   );
 }

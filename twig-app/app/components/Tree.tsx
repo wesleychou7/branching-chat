@@ -9,7 +9,6 @@ import RelationGraph, {
 } from "relation-graph-react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "@/app/store";
-import { addNode } from "./treeSlice";
 import Node from "./Node";
 
 const Tree = () => {
