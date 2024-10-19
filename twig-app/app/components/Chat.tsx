@@ -18,7 +18,7 @@ interface Props {
 }
 
 const Chat = ({ selectedChatID, setSelectedChatID }: Props) => {
-  // Automatic scrolling implementation
+  // Automatic scrolling
   const [inputBoxHeight, setInputBoxHeight] = useState<number>(0);
   const [previousScrollTop, setPreviousScrollTop] = useState<number>(0);
   const [reachedBottom, setReachedBottom] = useState<boolean>(false);
@@ -92,15 +92,19 @@ const Chat = ({ selectedChatID, setSelectedChatID }: Props) => {
         ref={messagesContainerRef}
         height={`calc(100vh - ${inputBoxHeight}px)`}
         overflow="auto"
+        width="100%"
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
       >
-        <Box display="flex" justifyContent="center" flexGrow={1}>
-          <Box width={750} mt={8} mb={8}>
+        <Box width={750}> {/* todo: make responsive. might need to pass in device size from page.tsx */}
+          <Box pt={8} pb={8}>
             <Messages messages={messages} />
           </Box>
         </Box>
-        <div ref={bottomOfMessagesRef} />
+        <div ref={bottomOfMessagesRef}/>
       </Box>
-      <Box display="flex" flexDirection="column" alignItems="center">
+      <Box width="100%" display="flex" justifyContent="center">
         <Box width={750}>
           <InputBox
             setInputBoxHeight={setInputBoxHeight}

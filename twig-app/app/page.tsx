@@ -1,15 +1,9 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
-import { useSelector } from "react-redux";
-import type { RootState } from "@/app/store";
+import { useState } from "react";
 import Grid from "@mui/material/Grid2";
 import Box from "@mui/joy/Box";
-import Button from "@mui/joy/Button/Button";
-import IconButton from "@mui/joy/IconButton";
 import SideBar from "@/app/components/SideBar";
 import MenuBar from "@/app/components/MenuBar";
-import Messages from "@/app/components/messages/Messages";
-import InputBox from "@/app/components/messages/InputBox";
 import Chat from "@/app/components/Chat";
 import { ReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -20,7 +14,6 @@ export default function Home() {
     { id: "2", position: { x: 0, y: 100 }, data: { label: "2" } },
   ];
   const initialEdges = [{ id: "e1-2", source: "1", target: "2" }];
-
   const [page, setPage] = useState<"chat" | "tree">("chat");
 
   const [sideBarOpen, setSideBarOpen] = useState<boolean>(false);
@@ -28,22 +21,21 @@ export default function Home() {
 
   return (
     <Grid container>
-      {sideBarOpen && (
-        <Box
-          position="absolute"
-          top={0}
-          left={0}
-          zIndex={1}
-          height="100vh"
-          width={300}
-        >
-          <SideBar
-            setSideBarOpen={setSideBarOpen}
-            selectedChatID={selectedChatID}
-            setSelectedChatID={setSelectedChatID}
-          />
-        </Box>
-      )}
+      <Box
+        position="absolute"
+        top={0}
+        left={0}
+        zIndex={1}
+        height="100vh"
+        width={300}
+      >
+        <SideBar
+          setSideBarOpen={setSideBarOpen}
+          selectedChatID={selectedChatID}
+          setSelectedChatID={setSelectedChatID}
+        />
+      </Box>
+
       <Box height="100vh" width="100vw">
         {page === "tree" && (
           <div>
@@ -58,6 +50,7 @@ export default function Home() {
                 setSideBarOpen={setSideBarOpen}
               />
             </Box>
+
             <Chat
               selectedChatID={selectedChatID}
               setSelectedChatID={setSelectedChatID}

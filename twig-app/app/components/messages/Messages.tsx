@@ -23,7 +23,7 @@ export default function Messages({ messages }: Props) {
   });
 
   return (
-    <Box height="100%" overflow="auto">
+    <Box>
       {useMemo(
         () =>
           messages

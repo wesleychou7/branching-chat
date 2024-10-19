@@ -12,11 +12,7 @@ interface Props {
 const MenuBar = ({ sideBarOpen, setSideBarOpen }: Props) => {
   return (
     <Box p={1} display="flex">
-      {!sideBarOpen && (
-        <IconButton onClick={() => setSideBarOpen(true)}>
-          <MenuRoundedIcon />
-        </IconButton>
-      )}
+
       <Box marginLeft="auto">
         <Button></Button>
       </Box>
