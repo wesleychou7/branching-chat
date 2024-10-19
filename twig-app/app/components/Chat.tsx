@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
+import { Dispatch, SetStateAction } from "react";
 import Box from "@mui/material/Box";
 import Messages from "@/app/components/messages/Messages";
 import InputBox from "@/app/components/messages/InputBox";
@@ -13,9 +14,10 @@ type Message = {
 
 interface Props {
   selectedChatID: number | null;
+  setSelectedChatID: Dispatch<SetStateAction<number | null>>;
 }
 
-const Chat = ({ selectedChatID }: Props) => {
+const Chat = ({ selectedChatID, setSelectedChatID }: Props) => {
   // Automatic scrolling implementation
   const [inputBoxHeight, setInputBoxHeight] = useState<number>(0);
   const [previousScrollTop, setPreviousScrollTop] = useState<number>(0);
@@ -48,6 +50,7 @@ const Chat = ({ selectedChatID }: Props) => {
   }
   useEffect(() => {
     if (selectedChatID) getMessages(selectedChatID);
+    else setMessages([]);
   }, [selectedChatID]);
 
   // automatically scroll to bottom
@@ -102,6 +105,7 @@ const Chat = ({ selectedChatID }: Props) => {
           <InputBox
             setInputBoxHeight={setInputBoxHeight}
             selectedChatID={selectedChatID}
+            setSelectedChatID={setSelectedChatID}
             messages={messages}
             setMessages={setMessages}
           />

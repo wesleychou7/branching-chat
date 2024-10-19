@@ -1,7 +1,7 @@
 import Box from "@mui/joy/Box";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import ParkRoundedIcon from "@mui/icons-material/ParkRounded";
-import SquareRoundedIcon from '@mui/icons-material/SquareRounded';
+import SquareRoundedIcon from "@mui/icons-material/SquareRounded";
 import IconButton from "@mui/joy/IconButton";
 import ArrowUpwardRoundedIcon from "@mui/icons-material/ArrowUpwardRounded";
 import { useState, useRef, useEffect } from "react";
@@ -26,6 +26,7 @@ type Message = {
 interface Props {
   setInputBoxHeight: React.Dispatch<React.SetStateAction<number>>;
   selectedChatID: number | null;
+  setSelectedChatID: React.Dispatch<React.SetStateAction<number | null>>;
   messages: Message[];
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }
@@ -40,6 +41,7 @@ const openai = new OpenAI({
 export default function InputBox({
   setInputBoxHeight,
   selectedChatID,
+  setSelectedChatID,
   messages,
   setMessages,
 }: Props) {
@@ -68,11 +70,37 @@ export default function InputBox({
     }
   }, [inputMessage]);
 
-  async function saveMessage(chat_id: number, role: string, content: string) {
-    const { error } = await supabase
-      .from("messages")
-      .insert({ chat_id: chat_id, role: role, content: content });
-    if (error) console.error(error);
+  async function saveMessage(
+    chat_id: number | null,
+    role: string,
+    content: string
+  ) {
+    if (chat_id) {
+      const { error } = await supabase
+        .from("messages")
+        .insert({ chat_id: chat_id, role: role, content: content });
+      if (error) console.error(error);
+      return chat_id;
+    } else {
+      // create a new chat
+      const { data, error } = await supabase
+        .from("chats")
+        .insert({ name: "New Chat" })
+        .select();
+      if (error) console.error(error);
+      // then save the message to the new chat
+      if (data) {
+        const newChatId = data[0].chat_id;
+        setSelectedChatID(newChatId);
+
+        const { error } = await supabase
+          .from("messages")
+          .insert({ chat_id: newChatId, role: role, content: content });
+        if (error) console.error(error);
+        return newChatId;
+      }
+    }
+    return null;
   }
 
   const sendMessage = async () => {
@@ -81,43 +109,43 @@ export default function InputBox({
         ...prevMessages,
         { role: "user", content: inputMessage },
       ]);
-      saveMessage(selectedChatID!, "user", inputMessage);
-    }
-    setInputMessage("");
-    dispatch(setAwaitingResponse(true));
+      const chat_id = await saveMessage(selectedChatID, "user", inputMessage);
+      setInputMessage("");
+      dispatch(setAwaitingResponse(true));
 
-    const stream = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        ...(messages as ChatCompletionMessageParam[]),
-        {
-          role: "user",
-          content: inputMessage,
-        },
-      ],
-      stream: true,
-    });
+      const stream = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          ...(messages as ChatCompletionMessageParam[]),
+          {
+            role: "user",
+            content: inputMessage,
+          },
+        ],
+        stream: true,
+      });
 
-    if (stream) {
-      dispatch(clearStreamedMessage());
-      dispatch(setStreaming(true));
+      if (stream) {
+        dispatch(clearStreamedMessage());
+        dispatch(setStreaming(true));
 
-      let response = "";
-      for await (const chunk of stream) {
-        const content = chunk.choices[0]?.delta?.content || "";
-        if (content) {
-          dispatch(appendStreamedMessage(content));
-          response += content;
+        let response = "";
+        for await (const chunk of stream) {
+          const content = chunk.choices[0]?.delta?.content || "";
+          if (content) {
+            dispatch(appendStreamedMessage(content));
+            response += content;
+          }
         }
-      }
 
-      await saveMessage(selectedChatID!, "assistant", response);
-      dispatch(setStreaming(false));
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { role: "assistant", content: response },
-      ]);
-      dispatch(setAwaitingResponse(false));
+        await saveMessage(chat_id, "assistant", response);
+        dispatch(setStreaming(false));
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { role: "assistant", content: response },
+        ]);
+        dispatch(setAwaitingResponse(false));
+      }
     }
   };
 

@@ -40,6 +40,8 @@ const SideBar = ({
     getChats();
   }, []);
 
+  async function createChat() {}
+
   return (
     <Box height="100%" bgcolor="#eeeeee" zIndex={100}>
       <Box width="100%" p={1}>
@@ -49,6 +51,12 @@ const SideBar = ({
       </Box>
 
       <Box display="flex" flexDirection="column">
+        <Button
+          onClick={() => setSelectedChatID(null)}
+          sx={{ mb: 2, bgcolor: "green" }}
+        >
+          New chat
+        </Button>
         {chats.map((chat) => (
           <Button
             key={chat.chat_id}

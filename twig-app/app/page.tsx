@@ -58,7 +58,10 @@ export default function Home() {
                 setSideBarOpen={setSideBarOpen}
               />
             </Box>
-            <Chat selectedChatID={selectedChatID} />
+            <Chat
+              selectedChatID={selectedChatID}
+              setSelectedChatID={setSelectedChatID}
+            />
           </div>
         )}
       </Box>
