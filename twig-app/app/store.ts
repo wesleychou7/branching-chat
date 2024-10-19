@@ -1,10 +1,8 @@
 import { configureStore } from "@reduxjs/toolkit";
-import treeReducer from "./components/treeSlice";
 import messageReducer from "@/app/components/messages/messageSlice";
 
 export const store = configureStore({
    reducer: {
-      "tree": treeReducer,
       "message": messageReducer
    },
 });
