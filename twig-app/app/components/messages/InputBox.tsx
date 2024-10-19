@@ -105,14 +105,14 @@ export default function InputBox({
 
   const sendMessage = async () => {
     if (validInput) {
+      setInputMessage("");
+      dispatch(setAwaitingResponse(true));
       setMessages((prevMessages) => [
         ...prevMessages,
         { role: "user", content: inputMessage },
       ]);
       const chat_id = await saveMessage(selectedChatID, "user", inputMessage);
-      setInputMessage("");
-      dispatch(setAwaitingResponse(true));
-
+      
       const stream = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
