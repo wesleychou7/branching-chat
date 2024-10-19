@@ -94,7 +94,7 @@ const Chat = ({ selectedChatID, setSelectedChatID }: Props) => {
         overflow="auto"
       >
         <Box display="flex" justifyContent="center" flexGrow={1}>
-          <Box width={750}>
+          <Box width={750} mt={8} mb={8}>
             <Messages messages={messages} />
           </Box>
         </Box>

@@ -1,6 +1,6 @@
 p {
-  margin-top: 12px;
-  margin-bottom: 8px;
+  margin-top: 12px !important;
+  margin-bottom: 8px !important;
 }
 
 table {
@@ -24,5 +24,5 @@ tr {
   border-color: black !important;
   border-style: solid !important;
   border-width: 1px !important;
-  padding: 0.5rem;
+  padding: 0.5rem !important;
 }

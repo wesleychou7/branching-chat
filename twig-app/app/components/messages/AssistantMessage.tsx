@@ -1,6 +1,5 @@
 import React from "react";
 import Box from "@mui/joy/Box";
-import { useDispatch } from "react-redux";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
@@ -29,10 +28,8 @@ const translateLaTex = (val: string | null): string => {
 };
 
 const AssistantMessage = ({ message, streaming = false }: Props) => {
-  const dispatch = useDispatch();
-
   return (
-    <Box bgcolor="none" color="black" borderRadius={10}>
+    <Box bgcolor="none" color="black">
       <Box pl={0.5} style={{ whiteSpace: "normal", lineHeight: "1.8" }}>
         <ReactMarkdown
           remarkPlugins={[remarkGfm, remarkBreaks, remarkMath]}

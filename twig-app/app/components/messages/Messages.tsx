@@ -1,7 +1,7 @@
 import Box from "@mui/joy/Box";
 import UserMessage from "./UserMessage";
 import AssistantMessage from "./AssistantMessage";
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 
@@ -23,7 +23,7 @@ export default function Messages({ messages }: Props) {
   });
 
   return (
-    <Box mt={8} height="100%" overflow="auto">
+    <Box height="100%" overflow="auto">
       {useMemo(
         () =>
           messages
@@ -49,7 +49,17 @@ export default function Messages({ messages }: Props) {
         [messages]
       )}
       {streaming && (
-        <AssistantMessage message={streamedMessage} streaming={true} />
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems={"flex-start"}
+          marginBottom={5}
+          whiteSpace="pre-wrap"
+          sx={{ wordBreak: "break-word" }}
+          position="relative" // need for fixing LaTex absolute position bug
+        >
+          <AssistantMessage message={streamedMessage} streaming={true} />
+        </Box>
       )}
     </Box>
   );

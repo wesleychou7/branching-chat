@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { addNode } from "@/app/components/treeSlice";
 import Box from "@mui/joy/Box";
 import IconButton from "@mui/joy/IconButton";
 import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
@@ -26,7 +25,7 @@ const AssistantButtons = ({ message }: Props) => {
   };
 
   const onBranchClick = () => {
-    dispatch(addNode());
+    // dispatch(addNode());
   };
 
   return (
