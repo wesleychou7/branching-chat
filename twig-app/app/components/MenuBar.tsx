@@ -4,15 +4,9 @@ import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import IconButton from "@mui/joy/IconButton";
 import { Dispatch, SetStateAction } from "react";
 
-interface Props {
-  sideBarOpen: boolean;
-  setSideBarOpen: Dispatch<SetStateAction<boolean>>;
-}
-
-const MenuBar = ({ sideBarOpen, setSideBarOpen }: Props) => {
+const MenuBar = () => {
   return (
     <Box p={1} display="flex">
-
       <Box marginLeft="auto">
         <Button></Button>
       </Box>

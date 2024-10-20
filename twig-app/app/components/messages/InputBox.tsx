@@ -80,7 +80,7 @@ export default function InputBox({
         {
           role: "system",
           content:
-            "Summarize the conversation in 4 words or fewer, using title case. Be as concise as possible without losing the context of the conversation. Your goal is to extract the key point of the conversation.",
+            "Summarize the conversation in 4 words or fewer, using title case. Be as concise as possible. Do not use any punctutaion.",
         },
         {
           role: "user",
@@ -99,7 +99,7 @@ export default function InputBox({
   async function saveMessage(
     chat_id: number | null,
     role: string,
-    content: string,
+    content: string
   ) {
     if (chat_id) {
       const { error } = await supabase
@@ -111,7 +111,7 @@ export default function InputBox({
       // create a new chat
       const { data, error } = await supabase
         .from("chats")
-        .insert({ name: "New chat" })
+        .insert({ name: "(New chat)" })
         .select();
       if (error) console.error(error);
       // then save the message to the new chat

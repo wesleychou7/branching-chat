@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Grid from "@mui/material/Grid2";
 import Box from "@mui/joy/Box";
-import SideBar from "@/app/components/SideBar";
+import SideBar from "@/app/components/sidebar/SideBar";
 import MenuBar from "@/app/components/MenuBar";
 import Chat from "@/app/components/Chat";
 import { ReactFlow } from "@xyflow/react";
@@ -30,7 +30,6 @@ export default function Home() {
         height="100vh"
       >
         <SideBar
-          setSideBarOpen={setSideBarOpen}
           selectedChatID={selectedChatID}
           setSelectedChatID={setSelectedChatID}
         />
@@ -45,10 +44,7 @@ export default function Home() {
         {page === "chat" && (
           <div>
             <Box position="absolute" top={0} left={0} right={0} zIndex={0}>
-              <MenuBar
-                sideBarOpen={sideBarOpen}
-                setSideBarOpen={setSideBarOpen}
-              />
+              <MenuBar />
             </Box>
 
             <Chat
