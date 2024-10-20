@@ -70,10 +70,36 @@ export default function InputBox({
     }
   }, [inputMessage]);
 
+  async function generateChatName(
+    userMessage: string,
+    assistantResponse: string
+  ) {
+    const chatName = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content:
+            "Summarize the conversation in 4 words or fewer, using title case. Be as concise as possible without losing the context of the conversation. Your goal is to extract the key point of the conversation.",
+        },
+        {
+          role: "user",
+          content: userMessage,
+        },
+        {
+          role: "assistant",
+          content: assistantResponse,
+        },
+      ],
+    });
+    if (chatName) return chatName.choices[0].message.content;
+    else return "A Conversation";
+  }
+
   async function saveMessage(
     chat_id: number | null,
     role: string,
-    content: string
+    content: string,
   ) {
     if (chat_id) {
       const { error } = await supabase
@@ -85,7 +111,7 @@ export default function InputBox({
       // create a new chat
       const { data, error } = await supabase
         .from("chats")
-        .insert({ name: "New Chat" })
+        .insert({ name: "New chat" })
         .select();
       if (error) console.error(error);
       // then save the message to the new chat
@@ -104,22 +130,26 @@ export default function InputBox({
   }
 
   const sendMessage = async () => {
+    let userInput = inputMessage;
+    let apiResponse = "";
+    const needNewChatName = messages.length <= 1;
+
     if (validInput) {
       setInputMessage("");
       dispatch(setAwaitingResponse(true));
       setMessages((prevMessages) => [
         ...prevMessages,
-        { role: "user", content: inputMessage },
+        { role: "user", content: userInput },
       ]);
-      const chat_id = await saveMessage(selectedChatID, "user", inputMessage);
-      
+      const chat_id = await saveMessage(selectedChatID, "user", userInput);
+
       const stream = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
           ...(messages as ChatCompletionMessageParam[]),
           {
             role: "user",
-            content: inputMessage,
+            content: userInput,
           },
         ],
         stream: true,
@@ -138,6 +168,7 @@ export default function InputBox({
           }
         }
 
+        apiResponse = response;
         await saveMessage(chat_id, "assistant", response);
         dispatch(setStreaming(false));
         setMessages((prevMessages) => [
@@ -145,6 +176,15 @@ export default function InputBox({
           { role: "assistant", content: response },
         ]);
         dispatch(setAwaitingResponse(false));
+
+        if (needNewChatName) {
+          const chatName = await generateChatName(userInput, response);
+          const { error } = await supabase
+            .from("chats")
+            .update({ name: chatName })
+            .eq("chat_id", chat_id);
+          if (error) console.error(error);
+        }
       }
     }
   };

@@ -26,8 +26,8 @@ export default function Home() {
         top={0}
         left={0}
         zIndex={1}
-        height="100vh"
         width={300}
+        height="100vh"
       >
         <SideBar
           setSideBarOpen={setSideBarOpen}

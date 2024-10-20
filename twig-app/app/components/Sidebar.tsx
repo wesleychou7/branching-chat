@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/app/store";
 import Box from "@mui/joy/Box";
 import Button from "@mui/joy/Button";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
@@ -28,7 +30,8 @@ const SideBar = ({
   async function getChats() {
     const { data, error } = await supabase
       .from("chats")
-      .select("chat_id, name");
+      .select("chat_id, name")
+      .order("created_at", { ascending: false });
 
     if (error) console.error(error);
 
@@ -37,35 +40,59 @@ const SideBar = ({
 
   useEffect(() => {
     getChats();
+
+    const subscription = supabase
+      .channel("chats_changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "chats" },
+        () => {
+          getChats();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   if (open) {
     return (
-      <Box height="100%" width={300} bgcolor="#eeeeee" zIndex={100}>
-        <Box width="100%" p={1}>
-          <IconButton onClick={() => setOpen(false)}>
-            <MenuRoundedIcon />
-          </IconButton>
-        </Box>
+      <Box height="100%" width={300} bgcolor="#eeeeee" zIndex={100} >
 
-        <Box display="flex" flexDirection="column">
-          <Button
-            onClick={() => setSelectedChatID(null)}
-            sx={{ mb: 2, bgcolor: "green" }}
-          >
-            New chat
-          </Button>
-          {chats.map((chat) => (
-            <Button
-              key={chat.chat_id}
-              onClick={() => setSelectedChatID(chat.chat_id)}
-              sx={{ mb: 1 }}
-              color={selectedChatID === chat.chat_id ? "primary" : "neutral"}
-            >
-              {chat.name}
-            </Button>
-          ))}
-        </Box>
+          <Box height="10%">
+            <Box p={1.3}>
+              {/* <Box width="100%"> */}
+                <IconButton onClick={() => setOpen(false)}>
+                  <MenuRoundedIcon />
+                </IconButton>
+              {/* </Box> */}
+              {/* <Box display="flex" flexDirection="column"> */}
+                <Button
+                  onClick={() => setSelectedChatID(null)}
+                  sx={{ mb: 2, bgcolor: "green" }}
+                >
+                  New chat
+                </Button>
+              {/* </Box> */}
+            </Box>
+          </Box>
+          <Box height="90%" overflow="auto">
+            <Box p={1.3}>
+              {chats.map((chat) => (
+                <Button
+                  key={chat.chat_id}
+                  onClick={() => setSelectedChatID(chat.chat_id)}
+                  sx={{ mb: 1, width: "100%" }}
+                  color={selectedChatID === chat.chat_id ? "primary" : "neutral"}
+                >
+                  {chat.name}
+                </Button>
+              ))}
+            </Box>
+          </Box>
+
       </Box>
     );
   } else {
