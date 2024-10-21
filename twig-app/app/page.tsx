@@ -25,7 +25,7 @@ export default function Home() {
         position="absolute"
         top={0}
         left={0}
-        zIndex={1}
+        zIndex={100}
         width={300}
         height="100vh"
       >
@@ -43,7 +43,7 @@ export default function Home() {
         )}
         {page === "chat" && (
           <div>
-            <Box position="absolute" top={0} left={0} right={0} zIndex={0}>
+            <Box position="absolute" top={0} left={80} right={0} zIndex={0}>
               <MenuBar />
             </Box>
 

@@ -7,8 +7,8 @@ import { Dispatch, SetStateAction } from "react";
 const MenuBar = () => {
   return (
     <Box p={1} display="flex">
-      <Box marginLeft="auto">
-        <Button></Button>
+      <Box >
+        {/* <Box>TWIG LOGO</Box> */}
       </Box>
     </Box>
   );
