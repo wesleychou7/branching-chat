@@ -106,7 +106,6 @@ const SideBar = ({ selectedChatID, setSelectedChatID }: Props) => {
                   startDecorator={<MapsUgcRoundedIcon fontSize="small" />}
                   onClick={() => setSelectedChatID(null)}
                   sx={{
-                    // paddingLeft: 12,
                     border: "1px solid green",
                     borderRadius: 7,
                     cursor: "pointer",
@@ -150,7 +149,6 @@ const SideBar = ({ selectedChatID, setSelectedChatID }: Props) => {
         width={100}
         bgcolor="transparent"
         onMouseEnter={() => setOpen(true)}
-        border="1px solid red"
         zIndex={-1}
       >
         <Box
