@@ -17,18 +17,15 @@ import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import TextareaAutosize from "react-textarea-autosize";
 import OpenAI from "openai";
 import supabase from "@/app/supabase";
-
-type Message = {
-  role: string;
-  content: string | null;
-};
+import { MessageType } from "@/app/components/types";
 
 interface Props {
   setInputBoxHeight: React.Dispatch<React.SetStateAction<number>>;
   selectedChatID: number | null;
   setSelectedChatID: React.Dispatch<React.SetStateAction<number | null>>;
-  messages: Message[];
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  messages: MessageType[];
+  setMessages: React.Dispatch<React.SetStateAction<MessageType[]>>;
+  setPage: React.Dispatch<React.SetStateAction<"chat" | "tree">>;
 }
 
 const openai = new OpenAI({
@@ -44,11 +41,16 @@ export default function InputBox({
   setSelectedChatID,
   messages,
   setMessages,
+  setPage,
 }: Props) {
   const dispatch = useDispatch();
   const awaitingResponse = useSelector(
     (state: RootState) => state.message.awaitingResponse
   );
+  const [currentParentID, setCurrentParentID] = useState<number | null>(null);
+  useEffect(() => {
+    setCurrentParentID(messages[messages.length - 1]?.id || null);
+  }, [messages]);
 
   const [inputMessage, setInputMessage] = useState<string>("");
   const [validInput, setValidInput] = useState<boolean>(false);
@@ -96,37 +98,51 @@ export default function InputBox({
     else return "A Conversation";
   }
 
+  async function createNewChat() {
+    const { data, error } = await supabase
+      .from("chats")
+      .insert({ name: "(New chat)" })
+      .select();
+    if (error) console.error(error);
+    if (data) {
+      setSelectedChatID(data[0].chat_id);
+      return data[0].chat_id;
+    }
+    return null;
+  }
+
   async function saveMessage(
     chat_id: number | null,
     role: string,
-    content: string
+    content: string,
+    parent_id: number | null = null
   ) {
-    if (chat_id) {
-      const { error } = await supabase
-        .from("messages")
-        .insert({ chat_id: chat_id, role: role, content: content });
-      if (error) console.error(error);
-      return chat_id;
-    } else {
-      // create a new chat
-      const { data, error } = await supabase
-        .from("chats")
-        .insert({ name: "(New chat)" })
-        .select();
-      if (error) console.error(error);
-      // then save the message to the new chat
-      if (data) {
-        const newChatId = data[0].chat_id;
-        setSelectedChatID(newChatId);
+    if (!chat_id) chat_id = await createNewChat();
 
-        const { error } = await supabase
-          .from("messages")
-          .insert({ chat_id: newChatId, role: role, content: content });
-        if (error) console.error(error);
-        return newChatId;
-      }
+    const { data, error } = await supabase
+      .from("messages")
+      .insert({
+        chat_id: chat_id,
+        parent_id: parent_id,
+        role: role,
+        content: content,
+      })
+      .select();
+    if (error) console.error(error);
+
+    if (data) {
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          id: data[0].id,
+          parent_id: parent_id,
+          role: role,
+          content: content,
+        },
+      ]);
+      return [chat_id, data[0].id];
     }
-    return null;
+    return [null, null];
   }
 
   const sendMessage = async () => {
@@ -137,11 +153,13 @@ export default function InputBox({
     if (validInput) {
       setInputMessage("");
       dispatch(setAwaitingResponse(true));
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { role: "user", content: userInput },
-      ]);
-      const chat_id = await saveMessage(selectedChatID, "user", userInput);
+
+      const [chat_id, userMessageID] = await saveMessage(
+        selectedChatID,
+        "user",
+        userInput,
+        currentParentID
+      );
 
       const stream = await openai.chat.completions.create({
         model: "gpt-4o-mini",
@@ -169,12 +187,8 @@ export default function InputBox({
         }
 
         apiResponse = response;
-        await saveMessage(chat_id, "assistant", response);
+        await saveMessage(chat_id, "assistant", response, userMessageID);
         dispatch(setStreaming(false));
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { role: "assistant", content: response },
-        ]);
         dispatch(setAwaitingResponse(false));
 
         if (needNewChatName) {
@@ -204,15 +218,20 @@ export default function InputBox({
       setInputBoxHeight(inputBoxRef.current.offsetHeight);
   }, [inputMessage, setInputBoxHeight]);
 
+  // console.log(messages);
+
   return (
     <Box
       ref={inputBoxRef}
       bgcolor="transparent"
       display="flex"
-      alignItems="center"
+      alignItems="end"
       pb={3}
     >
       <IconButton
+        onClick={() => {
+          setPage("tree");
+        }}
         sx={{
           height: 48.5,
           border: "none",
@@ -230,7 +249,7 @@ export default function InputBox({
       <Box
         ml={1}
         display="flex"
-        alignItems="center"
+        alignItems="end"
         bgcolor="#eeeeee"
         borderRadius={30}
         py={1}
@@ -245,6 +264,7 @@ export default function InputBox({
           autoFocus
           maxRows={20}
           style={{
+            marginBottom: 3,
             width: "100%",
             padding: 3,
             border: "none",

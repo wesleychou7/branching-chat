@@ -5,19 +5,23 @@ import { Dispatch, SetStateAction } from "react";
 import Box from "@mui/material/Box";
 import Messages from "@/app/components/messages/Messages";
 import InputBox from "@/app/components/messages/InputBox";
-import supabase from "@/app/supabase";
-
-type Message = {
-  role: string;
-  content: string | null;
-};
+import { MessageType } from "@/app/components/types";
 
 interface Props {
   selectedChatID: number | null;
+  setPage: Dispatch<SetStateAction<"chat" | "tree">>;
   setSelectedChatID: Dispatch<SetStateAction<number | null>>;
+  messages: MessageType[];
+  setMessages: Dispatch<SetStateAction<MessageType[]>>;
 }
 
-const Chat = ({ selectedChatID, setSelectedChatID }: Props) => {
+const Chat = ({
+  selectedChatID,
+  setSelectedChatID,
+  setPage,
+  messages,
+  setMessages,
+}: Props) => {
   // Automatic scrolling
   const [inputBoxHeight, setInputBoxHeight] = useState<number>(0);
   const [previousScrollTop, setPreviousScrollTop] = useState<number>(0);
@@ -31,27 +35,6 @@ const Chat = ({ selectedChatID, setSelectedChatID }: Props) => {
   const streamedMessage = useSelector((state: RootState) => {
     return state.message.streamedMessage;
   });
-
-  const [messages, setMessages] = useState<Message[]>([]);
-
-  async function getMessages(chat_id: number) {
-    const { data, error } = await supabase
-      .from("messages")
-      .select()
-      .eq("chat_id", chat_id)
-      .order("created_at", { ascending: true });
-
-    if (error) console.error(error);
-    else
-      setMessages([
-        { role: "system", content: "You are a helpful assistant." },
-        ...(data as Message[]),
-      ]);
-  }
-  useEffect(() => {
-    if (selectedChatID) getMessages(selectedChatID);
-    else setMessages([]);
-  }, [selectedChatID]);
 
   // automatically scroll to bottom
   useEffect(() => {
@@ -97,12 +80,13 @@ const Chat = ({ selectedChatID, setSelectedChatID }: Props) => {
         flexDirection="column"
         alignItems="center"
       >
-        <Box width={750}> {/* todo: make responsive. might need to pass in device size from page.tsx */}
+        <Box width={700}>
+          {/* todo: make responsive. might need to pass in device size from page.tsx */}
           <Box pt={8} pb={8}>
             <Messages messages={messages} />
           </Box>
         </Box>
-        <div ref={bottomOfMessagesRef}/>
+        <div ref={bottomOfMessagesRef} />
       </Box>
       <Box width="100%" display="flex" justifyContent="center">
         <Box width={750}>
@@ -112,6 +96,7 @@ const Chat = ({ selectedChatID, setSelectedChatID }: Props) => {
             setSelectedChatID={setSelectedChatID}
             messages={messages}
             setMessages={setMessages}
+            setPage={setPage}
           />
         </Box>
       </Box>

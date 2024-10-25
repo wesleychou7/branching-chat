@@ -1,23 +1,42 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Grid from "@mui/material/Grid2";
 import Box from "@mui/joy/Box";
 import SideBar from "@/app/components/sidebar/SideBar";
 import MenuBar from "@/app/components/MenuBar";
+import Tree from "@/app/components/tree/Tree";
 import Chat from "@/app/components/Chat";
-import { ReactFlow } from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
+import supabase from "@/app/supabase";
+import { MessageType } from "@/app/components/types";
 
 export default function Home() {
-  const initialNodes = [
-    { id: "1", position: { x: 0, y: 0 }, data: { label: "1" } },
-    { id: "2", position: { x: 0, y: 100 }, data: { label: "2" } },
-  ];
-  const initialEdges = [{ id: "e1-2", source: "1", target: "2" }];
   const [page, setPage] = useState<"chat" | "tree">("chat");
-
-  const [sideBarOpen, setSideBarOpen] = useState<boolean>(false);
   const [selectedChatID, setSelectedChatID] = useState<number | null>(null);
+  const [messages, setMessages] = useState<MessageType[]>([]);
+
+  async function getMessages(chat_id: number) {
+    const { data, error } = await supabase
+      .from("messages")
+      .select()
+      .eq("chat_id", chat_id)
+      .order("created_at", { ascending: true });
+
+    if (error) console.error(error);
+    else
+      setMessages([
+        {
+          id: -1,
+          parent_id: null,
+          role: "system",
+          content: "You are a helpful assistant.",
+        },
+        ...(data as MessageType[]),
+      ]);
+  }
+  useEffect(() => {
+    if (selectedChatID) getMessages(selectedChatID);
+    else setMessages([]);
+  }, [selectedChatID]);
 
   return (
     <Grid container>
@@ -37,8 +56,8 @@ export default function Home() {
 
       <Box height="100vh" width="100vw">
         {page === "tree" && (
-          <div>
-            <ReactFlow nodes={initialNodes} edges={initialEdges} />
+          <div style={{ height: "100vh", width: "100vw" }}>
+            <Tree messages={messages} />
           </div>
         )}
         {page === "chat" && (
@@ -49,7 +68,10 @@ export default function Home() {
 
             <Chat
               selectedChatID={selectedChatID}
+              setPage={setPage}
               setSelectedChatID={setSelectedChatID}
+              messages={messages}
+              setMessages={setMessages}
             />
           </div>
         )}
