@@ -57,7 +57,7 @@ export default function Home() {
       <Box height="100vh" width="100vw">
         {page === "tree" && (
           <div style={{ height: "100vh", width: "100vw" }}>
-            <Tree messages={messages} />
+            <Tree messages={messages} setMessages={setMessages}/>
           </div>
         )}
         {page === "chat" && (
