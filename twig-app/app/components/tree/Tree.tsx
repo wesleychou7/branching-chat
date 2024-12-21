@@ -1,19 +1,16 @@
-import {
-  ReactFlow,
-  ReactFlowProvider,
-  Background,
-} from "@xyflow/react";
+import { ReactFlow, ReactFlowProvider, Background, useReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import Dagre from "@dagrejs/dagre";
 import { useState, useRef, useEffect } from "react";
 import { MessageType } from "@/app/components/types";
 import Node from "./Node";
 
-type NodeType = {
+export type NodeType = {
   id: string;
   type: string;
   position: { x: number; y: number };
   data: {
+    id: string;
     label: string;
     value: string;
   };
@@ -23,23 +20,19 @@ type NodeType = {
   message: MessageType;
 };
 
-type EdgeType = {
+export type EdgeType = {
   id: string;
   source: string;
   target: string;
 };
 
 const getLayoutedElements = (nodes: any[], edges: any[]) => {
-  const dagreGraph = new Dagre.graphlib.Graph();
-  dagreGraph.setDefaultEdgeLabel(() => ({}));
+  const dagreGraph = new Dagre.graphlib.Graph;
+  dagreGraph.setDefaultEdgeLabel(() => ({}))
 
   // Set graph direction and spacing
   dagreGraph.setGraph({
     rankdir: "TB",
-    // nodesep: 80,
-    // ranksep: 100,
-    // marginx: 50,
-    // marginy: 50,
   });
 
   // Add nodes to dagre graph
@@ -49,11 +42,11 @@ const getLayoutedElements = (nodes: any[], edges: any[]) => {
 
   // Add edges to dagre graph
   edges.forEach((edge) => {
-    dagreGraph.setEdge(edge.source, edge.target);
+    dagreGraph.setEdge(edge.source, edge.target, {height: 10, minlen: 1});
   });
 
   // Calculate layout
-  Dagre.layout(dagreGraph);
+  Dagre.layout(dagreGraph, {height: 100});
 
   // Map nodes with updated positions and heights
   const layoutedNodes = nodes.map((node) => {
@@ -62,8 +55,8 @@ const getLayoutedElements = (nodes: any[], edges: any[]) => {
     return {
       ...node,
       position: {
-        x: nodeWithPosition.x - node.width / 2,
-        y: nodeWithPosition.y - node.height / 2,
+        x: nodeWithPosition.x - (node.width / 2),
+        y: nodeWithPosition.y - (node.height / 2),
       },
       data: {
         ...node.data,
@@ -73,10 +66,6 @@ const getLayoutedElements = (nodes: any[], edges: any[]) => {
     };
   });
   return layoutedNodes;
-};
-
-const nodeTypes = {
-  node: Node,
 };
 
 interface Props {
@@ -89,6 +78,21 @@ export default function Tree({ messages, setMessages }: Props) {
   const [nodes, setNodes] = useState<NodeType[]>([]);
   const [edges, setEdges] = useState<EdgeType[]>([]);
 
+  const nodeTypes = {
+    node: (props: any) => (
+      <Node
+        {...props}
+        messages={messages}
+        setMessages={setMessages}
+        setNodes={setNodes}
+        setEdges={setEdges}
+      />
+    ),
+  };
+
+  console.log(nodes);
+  console.log(edges);
+
   // load initial nodes and edges from messages
   useEffect(() => {
     const newNodes: NodeType[] = [];
@@ -98,7 +102,11 @@ export default function Tree({ messages, setMessages }: Props) {
         id: message.id.toString(),
         type: "node",
         position: { x: 0, y: 0 },
-        data: { label: message.role, value: message.content || "" },
+        data: {
+          id: message.id.toString(),
+          label: message.role,
+          value: message.content || "",
+        },
         width: 750,
         height: 1,
         message: message,
@@ -165,6 +173,7 @@ export default function Tree({ messages, setMessages }: Props) {
             fitView
             panOnScroll
             panOnScrollSpeed={1.5}
+            elevateEdgesOnSelect
           >
             <Background />
           </ReactFlow>
