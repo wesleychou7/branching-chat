@@ -1,28 +1,18 @@
 "use client";
 import { useState, useEffect } from "react";
-import Grid from "@mui/material/Grid2";
-import Box from "@mui/joy/Box";
 import SideBar from "@/app/components/sidebar/SideBar";
-import MenuBar from "@/app/components/MenuBar";
 import Tree from "@/app/components/tree/Tree";
-import Chat from "@/app/components/Chat";
 import supabase from "@/app/supabase";
-import { MessageType } from "@/app/components/types";
+import { ChatType, MessageType } from "@/app/components/types";
 import { PiSidebarSimpleBold } from "react-icons/pi";
 
-type Chat = {
-  chat_id: number;
-  name: string;
-};
-
 export default function Home() {
-  const [page, setPage] = useState<"chat" | "tree">("tree");
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
-  const [selectedChatID, setSelectedChatID] = useState<number | null>(null);
+  const [selectedChatID, setSelectedChatID] = useState<string | null>(null);
   const [messages, setMessages] = useState<MessageType[]>([]);
-  const [chats, setChats] = useState<Chat[]>([]);
+  const [chats, setChats] = useState<ChatType[]>([]);
 
-  async function getMessages(chat_id: number) {
+  async function getMessages(chat_id: string) {
     const { data, error } = await supabase
       .from("messages")
       .select()
@@ -33,7 +23,7 @@ export default function Home() {
     else
       setMessages([
         {
-          id: -1,
+          id: "-1",
           parent_id: null,
           role: "system",
           content: "You are a helpful assistant.",
@@ -45,11 +35,11 @@ export default function Home() {
   async function getChats() {
     const { data, error } = await supabase
       .from("chats")
-      .select("chat_id, name")
+      .select("id, name")
       .order("created_at", { ascending: false });
 
     if (error) console.error(error);
-    else setChats(data as Chat[]);
+    else setChats(data as ChatType[]);
   }
 
   useEffect(() => {
@@ -59,21 +49,6 @@ export default function Home() {
 
   useEffect(() => {
     getChats();
-
-    const subscription = supabase
-      .channel("chats_changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "chats" },
-        () => {
-          getChats();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, []);
 
   return (
@@ -87,6 +62,7 @@ export default function Home() {
           selectedChatID={selectedChatID}
           setSelectedChatID={setSelectedChatID}
           chats={chats}
+          setChats={setChats}
         />
       </div>
       <button
@@ -97,7 +73,7 @@ export default function Home() {
       </button>
 
       <div className="h-full w-full z-0">
-        <Tree messages={messages} setMessages={setMessages} />
+        <Tree selectedChatID={selectedChatID} messages={messages} setMessages={setMessages} />
       </div>
     </div>
   );

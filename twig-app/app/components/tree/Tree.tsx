@@ -1,34 +1,17 @@
-import { ReactFlow, ReactFlowProvider, Background, useReactFlow } from "@xyflow/react";
+import {
+  ReactFlow,
+  ReactFlowProvider,
+  Background,
+} from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import Dagre from "@dagrejs/dagre";
 import { useState, useRef, useEffect } from "react";
-import { MessageType } from "@/app/components/types";
+import { MessageType, NodeType, EdgeType } from "@/app/components/types";
 import Node from "./Node";
 
-export type NodeType = {
-  id: string;
-  type: string;
-  position: { x: number; y: number };
-  data: {
-    id: string;
-    label: string;
-    value: string;
-  };
-
-  width: number;
-  height: number;
-  message: MessageType;
-};
-
-export type EdgeType = {
-  id: string;
-  source: string;
-  target: string;
-};
-
 const getLayoutedElements = (nodes: any[], edges: any[]) => {
-  const dagreGraph = new Dagre.graphlib.Graph;
-  dagreGraph.setDefaultEdgeLabel(() => ({}))
+  const dagreGraph = new Dagre.graphlib.Graph();
+  dagreGraph.setDefaultEdgeLabel(() => ({}));
 
   // Set graph direction and spacing
   dagreGraph.setGraph({
@@ -42,11 +25,11 @@ const getLayoutedElements = (nodes: any[], edges: any[]) => {
 
   // Add edges to dagre graph
   edges.forEach((edge) => {
-    dagreGraph.setEdge(edge.source, edge.target, {height: 10, minlen: 1});
+    dagreGraph.setEdge(edge.source, edge.target, { height: 10, minlen: 1 });
   });
 
   // Calculate layout
-  Dagre.layout(dagreGraph, {height: 100});
+  Dagre.layout(dagreGraph, { height: 100 });
 
   // Map nodes with updated positions and heights
   const layoutedNodes = nodes.map((node) => {
@@ -55,8 +38,8 @@ const getLayoutedElements = (nodes: any[], edges: any[]) => {
     return {
       ...node,
       position: {
-        x: nodeWithPosition.x - (node.width / 2),
-        y: nodeWithPosition.y - (node.height / 2),
+        x: nodeWithPosition.x - node.width / 2,
+        y: nodeWithPosition.y - node.height / 2,
       },
       data: {
         ...node.data,
@@ -69,41 +52,38 @@ const getLayoutedElements = (nodes: any[], edges: any[]) => {
 };
 
 interface Props {
+  selectedChatID: string | null;
   messages: MessageType[];
   setMessages: React.Dispatch<React.SetStateAction<MessageType[]>>;
 }
 
-export default function Tree({ messages, setMessages }: Props) {
-  const [heightsCalculated, setHeightCalculated] = useState<boolean>(false);
+export default function Tree({ selectedChatID, messages, setMessages }: Props) {
+  const [heightsCalculated, setHeightsCalculated] = useState<boolean>(false);
   const [nodes, setNodes] = useState<NodeType[]>([]);
   const [edges, setEdges] = useState<EdgeType[]>([]);
+  const refs = useRef<(HTMLDivElement | null)[]>([]); // refs for each node to get height
 
   const nodeTypes = {
     node: (props: any) => (
       <Node
         {...props}
-        messages={messages}
+        selectedChatID={selectedChatID}
         setMessages={setMessages}
-        setNodes={setNodes}
-        setEdges={setEdges}
       />
     ),
   };
 
-  console.log(nodes);
-  console.log(edges);
-
-  // load initial nodes and edges from messages
+  // load nodes and edges from messages
   useEffect(() => {
     const newNodes: NodeType[] = [];
     const newEdges: EdgeType[] = [];
     for (const message of messages) {
       newNodes.push({
-        id: message.id.toString(),
+        id: message.id,
         type: "node",
         position: { x: 0, y: 0 },
         data: {
-          id: message.id.toString(),
+          id: message.id,
           label: message.role,
           value: message.content || "",
         },
@@ -113,18 +93,17 @@ export default function Tree({ messages, setMessages }: Props) {
       });
       if (message.parent_id) {
         newEdges.push({
-          id: message.id.toString(),
-          source: message.parent_id.toString(),
-          target: message.id.toString(),
+          id: message.id,
+          source: message.parent_id,
+          target: message.id,
         });
       }
     }
     setNodes(newNodes);
     setEdges(newEdges);
-    setHeightCalculated(false);
+    setHeightsCalculated(false);
   }, [messages]);
 
-  const refs = useRef<(HTMLDivElement | null)[]>([]);
   useEffect(() => {
     if (!heightsCalculated) {
       const newNodes: NodeType[] = [];
@@ -138,15 +117,15 @@ export default function Tree({ messages, setMessages }: Props) {
         }
       }
       setNodes(getLayoutedElements(newNodes, edges));
-      setHeightCalculated(true);
+      setHeightsCalculated(true);
     }
-  }, [heightsCalculated]);
+  }, [heightsCalculated, nodes, edges]);
 
   if (!heightsCalculated) {
     return (
       <div style={{ visibility: "hidden" }}>
         {nodes
-          .filter((node) => node.message.id !== -1)
+          .filter((node) => node.message.id !== "-1")
           .map((node, index) => {
             return (
               <div

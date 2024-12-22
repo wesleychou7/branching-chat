@@ -1,17 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Box from "@mui/joy/Box";
-import Button from "@mui/joy/Button";
-import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import IconButton from "@mui/joy/IconButton";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
-import { Dispatch, SetStateAction } from "react";
-import supabase from "@/app/supabase";
 
 interface Props {
   name: string;
-  chat_id: number;
-  selectedChatID: number | null;
-  setSelectedChatID: React.Dispatch<React.SetStateAction<number | null>>;
+  chat_id: string;
+  selectedChatID: string | null;
+  setSelectedChatID: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const SavedChat = ({

@@ -38,7 +38,8 @@
     "relation-graph-react": "^2.2.3",
     "remark-breaks": "^4.0.0",
     "remark-gfm": "^4.0.0",
-    "remark-math": "^6.0.0"
+    "remark-math": "^6.0.0",
+    "uuid": "^11.0.3"
   },
   "devDependencies": {
     "@types/node": "^20",

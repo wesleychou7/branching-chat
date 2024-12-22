@@ -1,25 +1,39 @@
-import React, { useRef } from "react";
-import Box from "@mui/joy/Box";
-import Button from "@mui/joy/Button";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import MapsUgcRoundedIcon from "@mui/icons-material/MapsUgcRounded";
-import IconButton from "@mui/joy/IconButton";
 import SavedChat from "./SavedChat";
 import { Dispatch, SetStateAction } from "react";
+import { ChatType } from "@/app/components/types";
+import { v4 as uuidv4 } from "uuid";
+import supabase from "@/app/supabase";
 
 interface Props {
-  selectedChatID: number | null;
-  setSelectedChatID: Dispatch<SetStateAction<number | null>>;
-  chats: Chat[];
+  selectedChatID: string | null;
+  setSelectedChatID: Dispatch<SetStateAction<string | null>>;
+  chats: ChatType[];
+  setChats: Dispatch<SetStateAction<ChatType[]>>;
 }
 
-type Chat = {
-  chat_id: number;
-  name: string;
-};
+const SideBar = ({
+  selectedChatID,
+  setSelectedChatID,
+  chats,
+  setChats,
+}: Props) => {
+  const createNewChat = async () => {
+    // update chat state
+    const newChat: ChatType = {
+      id: uuidv4(),
+      name: "New Chat",
+    };
+    setChats((prevChats) => [...prevChats, newChat]);
+    setSelectedChatID(newChat.id);
 
-const SideBar = ({ selectedChatID, setSelectedChatID, chats }: Props) => {
-  const nodeRef = useRef(null);
+    // update database
+    const response = await supabase
+      .from("chats")
+      .insert({ id: newChat.id, name: newChat.name });
+
+    if (response.error) console.error(response.error);
+  };
 
   return (
     <div className="w-full h-full bg-gray-50 p-2 flex flex-col">
@@ -27,7 +41,10 @@ const SideBar = ({ selectedChatID, setSelectedChatID, chats }: Props) => {
         <button>Twig</button>
       </div>
 
-      <button className="flex items-center justify-center w-full p-2 border-2 border-green-700 rounded-lg hover:bg-green-100 mb-5">
+      <button
+        onClick={createNewChat}
+        className="flex items-center justify-center w-full p-2 border-2 border-green-700 rounded-lg hover:bg-green-100 mb-5"
+      >
         <MapsUgcRoundedIcon fontSize="small" style={{ color: "green" }} />
         <div className="ml-2 text-sm text-green-700">Start a new chat</div>
       </button>
@@ -35,9 +52,9 @@ const SideBar = ({ selectedChatID, setSelectedChatID, chats }: Props) => {
       <div className=" overflow-auto">
         {chats.map((chat) => (
           <SavedChat
-            key={chat.chat_id}
+            key={chat.id}
             name={chat.name}
-            chat_id={chat.chat_id}
+            chat_id={chat.id}
             selectedChatID={selectedChatID}
             setSelectedChatID={setSelectedChatID}
           />
