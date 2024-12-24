@@ -18,6 +18,7 @@ type NodeType = {
      id: string;
      label: string;
      value: string;
+     height: number;
    };
  
    width: number;

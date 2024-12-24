@@ -13,6 +13,7 @@ export default function Home() {
   const [chats, setChats] = useState<ChatType[]>([]);
 
   async function getMessages(chat_id: string) {
+    console.log("GOT MESSAGEs");
     const { data, error } = await supabase
       .from("messages")
       .select()
@@ -20,16 +21,7 @@ export default function Home() {
       .order("created_at", { ascending: true });
 
     if (error) console.error(error);
-    else
-      setMessages([
-        {
-          id: "-1",
-          parent_id: null,
-          role: "system",
-          content: "You are a helpful assistant.",
-        },
-        ...(data as MessageType[]),
-      ]);
+    else setMessages([...(data as MessageType[])]);
   }
 
   async function getChats() {
@@ -73,7 +65,11 @@ export default function Home() {
       </button>
 
       <div className="h-full w-full z-0">
-        <Tree selectedChatID={selectedChatID} messages={messages} setMessages={setMessages} />
+        <Tree
+          selectedChatID={selectedChatID}
+          messages={messages}
+          setMessages={setMessages}
+        />
       </div>
     </div>
   );

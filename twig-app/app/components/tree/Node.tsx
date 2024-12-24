@@ -4,17 +4,28 @@ import { MessageType } from "@/app/components/types";
 import TextareaAutosize from "react-textarea-autosize";
 import supabase from "@/app/supabase";
 import { v4 as uuidv4 } from "uuid";
+import OpenAI from "openai";
+import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
+
+const openai = new OpenAI({
+  // apiKey: process.env.OPENAI_API_KEY,
+  apiKey:
+    "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",
+  dangerouslyAllowBrowser: true,
+});
 
 // props must be any type bc of dagre
 export default function Node({
-  id, // THIS IS A STRING  
+  id, // THIS IS A STRING
   data,
   selectedChatID,
+  messages,
   setMessages,
 }: any) {
   const [prompt, setPrompt] = useState<string>(data.value);
   const timeoutRef = useRef<NodeJS.Timeout>();
 
+  // update message in database after user stops typing for 3 seconds
   useEffect(() => {
     timeoutRef.current = setTimeout(async () => {
       const response = await supabase
@@ -63,26 +74,88 @@ export default function Node({
   }
 
   async function onClickGenerateResponse() {
+    setMessages((prev: MessageType[]) =>
+      prev.map((msg: MessageType) => {
+        if (msg.id === id) return { ...msg, content: prompt };
+        return msg;
+      })
+    );
+
+    const responseId = uuidv4();
     // add message to message state
     const newMessage: MessageType = {
-      id: uuidv4(),
+      id: responseId,
       parent_id: id,
       role: "assistant",
       content: "",
     };
     setMessages((prev: MessageType[]) => prev.concat(newMessage));
 
-    // add message to database
+    // get parent messages by traversing up the tree thru parents
+    const parentMessages: MessageType[] = (() => {
+      const result: MessageType[] = [];
+      let currentId: string | null = id;
+
+      while (currentId) {
+        // If we're at the current node ID, use the latest prompt
+        const message =
+          currentId === id
+            ? {
+                ...messages.find((msg: MessageType) => msg.id === currentId),
+                content: prompt,
+              }
+            : messages.find((msg: MessageType) => msg.id === currentId);
+
+        if (!message) break;
+        result.push(message);
+        currentId = message.parent_id;
+      }
+
+      return result.reverse();
+    })();
+
+    // console.log([...parentMessages]);
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "You are a helpful assistant." },
+        ...(parentMessages as ChatCompletionMessageParam[]),
+      ],
+      stream: true,
+    });
+
+    let accumulatedContent = "";
+
+    for await (const chunk of completion) {
+      const content = chunk.choices[0]?.delta?.content || "";
+      accumulatedContent += content;
+
+      setMessages((prev: MessageType[]) => {
+        const newMessages = [...prev];
+        const index = newMessages.findIndex(
+          (msg: MessageType) => msg.id === responseId
+        );
+        if (index !== -1) {
+          newMessages[index].content = accumulatedContent;
+        }
+        return newMessages;
+      });
+    }
+
+    // add message to database with final content
     const response = await supabase.from("messages").insert({
-      id: newMessage.id,
+      id: responseId,
       chat_id: selectedChatID,
       role: "assistant",
-      content: "",
+      content: accumulatedContent,
       parent_id: id,
     });
 
     if (response.error) console.error(response.error);
   }
+
+  // console.log(data);
 
   return (
     <div>
@@ -93,10 +166,12 @@ export default function Node({
           </div>
           <button onClick={onClickDelete}>Delete</button>
         </div>
-        {/* <div>{data.value}</div> */}
         <TextareaAutosize
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
           style={{
             width: "99%",
             border: "none",
