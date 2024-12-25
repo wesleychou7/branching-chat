@@ -17,7 +17,7 @@ import Node from "./Node";
  * - PARENT_CHILD_VERTICAL_SPACING: vertical gap from parent's bottom to child's top.
  */
 const SIBLING_HORIZONTAL_SPACING = 30;
-const PARENT_CHILD_VERTICAL_SPACING = 80;
+const PARENT_CHILD_VERTICAL_SPACING = 60;
 
 /**
  * layoutTree:

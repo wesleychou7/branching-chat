@@ -14,6 +14,26 @@ import {
   clearStreamedMessage,
   setAwaitingResponse,
 } from "@/app/components/tree/messageSlice";
+import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import remarkBreaks from "remark-breaks";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
+import "./AssistantMessage.css";
+import CodeHighlighter from "./CodeHighlighter";
+
+const translateLaTex = (val: string | null): string => {
+  if (!val) return "";
+  if (val.indexOf("\\") == -1) return val;
+
+  return val
+    .replaceAll("\\(", "$$") // inline math
+    .replaceAll("\\)", "$$")
+    .replaceAll("\\[", "$$$") // display math
+    .replaceAll("\\]", "$$$");
+};
 
 const openai = new OpenAI({
   // apiKey: process.env.OPENAI_API_KEY,
@@ -31,17 +51,24 @@ export default function Node({
   setMessages,
 }: any) {
   const [prompt, setPrompt] = useState<string>(data.value);
+  // const [response, setResponse] = useState<string>("");
   const timeoutRef = useRef<NodeJS.Timeout>();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-focus textarea when a new node is added
+  if (data.label === "user" && prompt === "") {
+    textareaRef.current?.focus();
+  }
 
   // redux for streaming response
   const dispatch = useDispatch();
   const nodeId = useSelector((state: RootState) => state.message.nodeId);
-  const awaitingResponse = useSelector(
-    (state: RootState) => state.message.awaitingResponse
+  const awaitingResponse = useSelector((state: RootState) =>
+    state.message.nodeId === id ? state.message.awaitingResponse : false
   );
-  const streamedMessage = useSelector((state: RootState) => {
-    return state.message.streamedMessage;
-  });
+  const streamedMessage = useSelector((state: RootState) =>
+    state.message.nodeId === id ? state.message.streamedMessage : ""
+  );
 
   // update message in database after user stops typing for 3 seconds
   useEffect(() => {
@@ -182,37 +209,59 @@ export default function Node({
     <div>
       <div className="bg-white border border-gray-400 rounded-lg w-[750px] p-2">
         <div className="flex justify-between text-xs text-gray-400 mb-1">
-          <div>
-            {data.label} {id} {nodeId}
-          </div>
+          <div>{data.label}</div>
           <button onClick={onClickDelete}>Delete</button>
         </div>
-        <TextareaAutosize
-          value={
-            data.label === "user"
-              ? prompt
-              : awaitingResponse && id === nodeId
-              ? streamedMessage + " ▎"
-              : prompt
-          }
-          onChange={(e) => setPrompt(e.target.value)}
-          onClick={(e) => {
-            e.stopPropagation(); // this is so that i can click directly into the textarea
-          }}
-          className="nopan" // this is so that highlighting in the textarea doesn't drag the tree view
-          style={{
-            width: "99%",
-            border: "none",
-            resize: "none",
-            outline: "none",
-            fontFamily: "inherit",
-            fontSize: "inherit",
-          }}
-        />
+        {data.label === "user" && (
+          <TextareaAutosize
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            onClick={(e) => {
+              e.stopPropagation(); // this is so that i can click directly into the textarea
+            }}
+            ref={textareaRef}
+            className="nopan" // this is so that highlighting in the textarea doesn't drag the tree view
+            style={{
+              width: "99%",
+              border: "none",
+              resize: "none",
+              outline: "none",
+              fontFamily: "inherit",
+              fontSize: "inherit",
+            }}
+          />
+        )}
+        {data.label === "assistant" && (
+          <ReactMarkdown
+            className="assistant-message nopan"
+            remarkPlugins={[remarkGfm, remarkBreaks, remarkMath]}
+            rehypePlugins={[rehypeRaw, rehypeKatex]}
+            components={{
+              code: (props) => {
+                const { children, className } = props;
+                const match = /language-(\w+)/.exec(className || ""); // extract code language from className
+                return (
+                  <CodeHighlighter
+                    language={match ? match[1] : "text"} // default to normal text if no language
+                    code={String(children)}
+                  />
+                );
+              },
+            }}
+          >
+            {`${translateLaTex(
+              awaitingResponse && id === nodeId
+                ? streamedMessage + " ▎"
+                : prompt
+            )}`}
+          </ReactMarkdown>
+        )}
 
         <div className="flex justify-end text-xs text-gray-400 gap-4">
-          <button onClick={onClickAddPrompt}>Add prompt</button>
-          <button onClick={onClickGenerateResponse}>Generate response</button>
+          <button onClick={onClickAddPrompt}>Add message</button>
+          {data.label === "user" && (
+            <button onClick={onClickGenerateResponse}>Generate response</button>
+          )}
         </div>
       </div>
 
@@ -224,6 +273,7 @@ export default function Node({
           type="source"
           position={Position.Bottom}
           isConnectable={false}
+          style={{ visibility: awaitingResponse ? "hidden" : "visible" }} // hide bottom handle when streaming response
         />
       )}
     </div>
