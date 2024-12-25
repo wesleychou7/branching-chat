@@ -252,13 +252,10 @@ export default function Tree({ selectedChatID, messages, setMessages }: Props) {
           }
         }
       }
-      // setNodes(getLayoutedElements(newNodes, edges));
       setNodes(customLayout(newNodes, edges));
       setHeightsCalculated(true);
     }
   }, [heightsCalculated, nodes, edges]);
-
-  console.log(nodes);
 
   if (!heightsCalculated) {
     return (
@@ -302,6 +299,7 @@ export default function Tree({ selectedChatID, messages, setMessages }: Props) {
             panOnScroll
             panOnScrollSpeed={1.5}
             minZoom={0.2}
+            noPanClassName="nopan"
           >
             <Background />
           </ReactFlow>

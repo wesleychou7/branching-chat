@@ -6,6 +6,14 @@ import supabase from "@/app/supabase";
 import { v4 as uuidv4 } from "uuid";
 import OpenAI from "openai";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "@/app/store";
+import {
+  setNodeId,
+  appendStreamedMessage,
+  clearStreamedMessage,
+  setAwaitingResponse,
+} from "@/app/components/tree/messageSlice";
 
 const openai = new OpenAI({
   // apiKey: process.env.OPENAI_API_KEY,
@@ -24,6 +32,16 @@ export default function Node({
 }: any) {
   const [prompt, setPrompt] = useState<string>(data.value);
   const timeoutRef = useRef<NodeJS.Timeout>();
+
+  // redux for streaming response
+  const dispatch = useDispatch();
+  const nodeId = useSelector((state: RootState) => state.message.nodeId);
+  const awaitingResponse = useSelector(
+    (state: RootState) => state.message.awaitingResponse
+  );
+  const streamedMessage = useSelector((state: RootState) => {
+    return state.message.streamedMessage;
+  });
 
   // update message in database after user stops typing for 3 seconds
   useEffect(() => {
@@ -74,6 +92,11 @@ export default function Node({
   }
 
   async function onClickGenerateResponse() {
+    const responseId = uuidv4();
+    dispatch(setNodeId(responseId));
+    dispatch(setAwaitingResponse(true));
+    dispatch(clearStreamedMessage());
+
     setMessages((prev: MessageType[]) =>
       prev.map((msg: MessageType) => {
         if (msg.id === id) return { ...msg, content: prompt };
@@ -81,7 +104,6 @@ export default function Node({
       })
     );
 
-    const responseId = uuidv4();
     // add message to message state
     const newMessage: MessageType = {
       id: responseId,
@@ -114,8 +136,6 @@ export default function Node({
       return result.reverse();
     })();
 
-    // console.log([...parentMessages]);
-
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -130,18 +150,21 @@ export default function Node({
     for await (const chunk of completion) {
       const content = chunk.choices[0]?.delta?.content || "";
       accumulatedContent += content;
-
-      setMessages((prev: MessageType[]) => {
-        const newMessages = [...prev];
-        const index = newMessages.findIndex(
-          (msg: MessageType) => msg.id === responseId
-        );
-        if (index !== -1) {
-          newMessages[index].content = accumulatedContent;
-        }
-        return newMessages;
-      });
+      dispatch(appendStreamedMessage(content));
     }
+
+    setMessages((prev: MessageType[]) => {
+      const newMessages = [...prev];
+      const index = newMessages.findIndex(
+        (msg: MessageType) => msg.id === responseId
+      );
+      if (index !== -1) {
+        newMessages[index].content = accumulatedContent;
+      }
+      return newMessages;
+    });
+
+    dispatch(setAwaitingResponse(false));
 
     // add message to database with final content
     const response = await supabase.from("messages").insert({
@@ -155,23 +178,28 @@ export default function Node({
     if (response.error) console.error(response.error);
   }
 
-  // console.log(data);
-
   return (
     <div>
       <div className="bg-white border border-gray-400 rounded-lg w-[750px] p-2">
         <div className="flex justify-between text-xs text-gray-400 mb-1">
           <div>
-            {data.label} {data.id}
+            {data.label} {id} {nodeId}
           </div>
           <button onClick={onClickDelete}>Delete</button>
         </div>
         <TextareaAutosize
-          value={prompt}
+          value={
+            data.label === "user"
+              ? prompt
+              : awaitingResponse && id === nodeId
+              ? streamedMessage + " ▎"
+              : prompt
+          }
           onChange={(e) => setPrompt(e.target.value)}
           onClick={(e) => {
-            e.stopPropagation();
+            e.stopPropagation(); // this is so that i can click directly into the textarea
           }}
+          className="nopan" // this is so that highlighting in the textarea doesn't drag the tree view
           style={{
             width: "99%",
             border: "none",

@@ -13,7 +13,6 @@ export default function Home() {
   const [chats, setChats] = useState<ChatType[]>([]);
 
   async function getMessages(chat_id: string) {
-    console.log("GOT MESSAGEs");
     const { data, error } = await supabase
       .from("messages")
       .select()
@@ -74,3 +73,6 @@ export default function Home() {
     </div>
   );
 }
+
+
+// fix streaming renders
