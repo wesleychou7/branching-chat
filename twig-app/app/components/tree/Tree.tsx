@@ -10,6 +10,7 @@ import Dagre from "@dagrejs/dagre";
 import { useState, useRef, useEffect } from "react";
 import { MessageType, NodeType, EdgeType } from "@/app/components/types";
 import Node from "./Node";
+import "./Node.css";
 
 /**
  * Adjust these spacings as you like:

@@ -51,7 +51,6 @@ export default function Node({
   setMessages,
 }: any) {
   const [prompt, setPrompt] = useState<string>(data.value);
-  // const [response, setResponse] = useState<string>("");
   const timeoutRef = useRef<NodeJS.Timeout>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -206,7 +205,7 @@ export default function Node({
   }
 
   return (
-    <div>
+    <div className={data.label === "user" ? "user-node" : ""}>
       <div className="bg-white border border-gray-400 rounded-lg w-[750px] p-2">
         <div className="flex justify-between text-xs text-gray-400 mb-1">
           <div>{data.label}</div>
