@@ -6,6 +6,17 @@
   cursor: text !important;
 }
 
+ol, ul {
+  list-style-type: disc !important;
+  list-style-position: outside !important;
+  padding-left: 1.625em !important;
+  margin-bottom: 1.25em !important;
+}
+
+li {
+  padding-left: .375em;
+}
+
 p {
   margin-top: 12px !important;
   margin-bottom: 8px !important;
