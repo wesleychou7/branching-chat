@@ -53,11 +53,10 @@ export default function Node({
   const [prompt, setPrompt] = useState<string>(data.value);
   const timeoutRef = useRef<NodeJS.Timeout>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [copyText, setCopyText] = useState<string>("Copy");
 
   // Auto-focus textarea when a new node is added
-  if (data.label === "user" && prompt === "") {
-    textareaRef.current?.focus();
-  }
+  if (data.label === "user" && prompt === "") textareaRef.current?.focus();
 
   // redux for streaming response
   const dispatch = useDispatch();
@@ -204,24 +203,39 @@ export default function Node({
     if (response.error) console.error(response.error);
   }
 
+  function onClickCopy() {
+    setCopyText("Copied!");
+    navigator.clipboard.writeText(prompt);
+    setTimeout(() => setCopyText("Copy"), 2000);
+  }
+
   return (
-    <div className={data.label === "user" ? "user-node" : ""}>
-      <div className="bg-white border border-gray-400 rounded-lg w-[750px] p-2">
+    <div
+      className={`${data.label === "user" ? "user-node" : ""} cursor-default`}
+    >
+      <div
+        className={`${data.label === "user" ? "bg-gray-50" : "bg-white"} border 
+        ${
+          data.label === "user" ? "border-gray-400" : "border-gray-300"
+        } rounded-lg w-[750px] p-2`}
+      >
         <div className="flex justify-between text-xs text-gray-400 mb-1">
-          <div>{data.label}</div>
-          <button onClick={onClickDelete}>Delete</button>
+          <div>{data.label === "user" ? "you" : "gpt-4o-mini"}</div>
+          {data.parent_id && <button onClick={onClickDelete}>Delete</button>}
         </div>
         {data.label === "user" && (
           <TextareaAutosize
             value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
+            onChange={(e) => {
+              setPrompt(e.target.value);
+            }}
             onClick={(e) => {
               e.stopPropagation(); // this is so that i can click directly into the textarea
             }}
             ref={textareaRef}
-            className="nopan" // this is so that highlighting in the textarea doesn't drag the tree view
+            className="nopan bg-gray-50" // nopan so that highlighting in the textarea doesn't drag the tree view
             style={{
-              width: "99%",
+              width: "100%",
               border: "none",
               resize: "none",
               outline: "none",
@@ -256,10 +270,27 @@ export default function Node({
           </ReactMarkdown>
         )}
 
-        <div className="flex justify-end text-xs text-gray-400 gap-4">
-          <button onClick={onClickAddPrompt}>Add message</button>
+        <div className="text-xs text-gray-400 mt-1">
           {data.label === "user" && (
-            <button onClick={onClickGenerateResponse}>Generate response</button>
+            <div className="flex justify-end gap-4">
+              <button onClick={onClickAddPrompt}>Add message</button>
+              <button onClick={onClickGenerateResponse}>
+                Generate response
+              </button>
+            </div>
+          )}
+          {data.label === "assistant" && (
+            <div className="flex justify-between gap-4">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClickCopy();
+                }}
+              >
+                {copyText}
+              </button>
+              <button onClick={onClickAddPrompt}>Add message</button>
+            </div>
           )}
         </div>
       </div>

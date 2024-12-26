@@ -216,6 +216,7 @@ export default function Tree({ selectedChatID, messages, setMessages }: Props) {
         position: { x: 0, y: 0 },
         data: {
           id: message.id,
+          parent_id: message.parent_id,
           label: message.role,
           value: message.content || "",
           height: 1,

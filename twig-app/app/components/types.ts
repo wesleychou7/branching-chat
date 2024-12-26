@@ -16,6 +16,7 @@ type NodeType = {
    position: { x: number; y: number };
    data: {
      id: string;
+     parent_id: string | null;
      label: string;
      value: string;
      height: number;
