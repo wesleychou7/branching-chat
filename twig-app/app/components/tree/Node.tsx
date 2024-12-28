@@ -23,6 +23,7 @@ import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import "./AssistantMessage.css";
 import CodeHighlighter from "./CodeHighlighter";
+import DeleteModal from "./DeleteModal";
 
 const translateLaTex = (val: string | null): string => {
   if (!val) return "";
@@ -54,6 +55,7 @@ export default function Node({
   const timeoutRef = useRef<NodeJS.Timeout>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [copyText, setCopyText] = useState<string>("Copy");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Auto-focus textarea when a new node is added
   if (data.label === "user" && prompt === "") textareaRef.current?.focus();
@@ -105,13 +107,45 @@ export default function Node({
   }
 
   async function onClickDelete() {
-    // delete message from message state
-    setMessages((prev: MessageType[]) =>
-      prev.filter((msg: MessageType) => msg.id != id)
+    // Check if node has children
+    const hasChildren = messages.some(
+      (msg: MessageType) => msg.parent_id === id
     );
 
-    // delete message from database
-    const response = await supabase.from("messages").delete().eq("id", id);
+    if (hasChildren) {
+      setShowDeleteModal(true);
+      return;
+    }
+
+    // If no children, delete immediately
+    await deleteNode();
+  }
+
+  async function deleteNode() {
+    // Collect all IDs to delete (including children)
+    const idsToDelete = new Set<string>();
+
+    const collectIdsToDelete = (nodeId: string) => {
+      idsToDelete.add(nodeId);
+      messages.forEach((msg: MessageType) => {
+        if (msg.parent_id === nodeId) {
+          collectIdsToDelete(msg.id);
+        }
+      });
+    };
+
+    collectIdsToDelete(id);
+
+    // delete messages and all their children from message state
+    setMessages((prev: MessageType[]) =>
+      prev.filter((msg: MessageType) => !idsToDelete.has(msg.id))
+    );
+
+    // delete messages and all their children from database
+    const response = await supabase
+      .from("messages")
+      .delete()
+      .in("id", Array.from(idsToDelete));
 
     if (response.error) console.error(response.error);
   }
@@ -210,102 +244,123 @@ export default function Node({
   }
 
   return (
-    <div
-      className={`${data.label === "user" ? "user-node" : ""} cursor-default`}
-    >
+    <>
       <div
-        className={`${data.label === "user" ? "bg-gray-50" : "bg-white"} border 
-        ${
-          data.label === "user" ? "border-gray-400" : "border-gray-300"
-        } rounded-lg w-[750px] p-2`}
+        className={`${data.label === "user" ? "user-node" : ""} cursor-default`}
       >
-        <div className="flex justify-between text-xs text-gray-400 mb-1">
-          <div>{data.label === "user" ? "you" : "gpt-4o-mini"}</div>
-          {data.parent_id && <button onClick={onClickDelete}>Delete</button>}
-        </div>
-        {data.label === "user" && (
-          <TextareaAutosize
-            value={prompt}
-            onChange={(e) => {
-              setPrompt(e.target.value);
-            }}
-            onClick={(e) => {
-              e.stopPropagation(); // this is so that i can click directly into the textarea
-            }}
-            ref={textareaRef}
-            className="nopan bg-gray-50" // nopan so that highlighting in the textarea doesn't drag the tree view
-            style={{
-              width: "100%",
-              border: "none",
-              resize: "none",
-              outline: "none",
-              fontFamily: "inherit",
-              fontSize: "inherit",
-            }}
-          />
-        )}
-        {data.label === "assistant" && (
-          <ReactMarkdown
-            className="assistant-message nopan"
-            remarkPlugins={[remarkGfm, remarkBreaks, remarkMath]}
-            rehypePlugins={[rehypeRaw, rehypeKatex]}
-            components={{
-              code: (props) => {
-                const { children, className } = props;
-                const match = /language-(\w+)/.exec(className || ""); // extract code language from className
-                return (
-                  <CodeHighlighter
-                    language={match ? match[1] : "text"} // default to normal text if no language
-                    code={String(children)}
-                  />
-                );
-              },
-            }}
-          >
-            {`${translateLaTex(
-              awaitingResponse && id === nodeId
-                ? streamedMessage + " ▎"
-                : prompt
-            )}`}
-          </ReactMarkdown>
-        )}
-
-        <div className="text-xs text-gray-400 mt-1">
-          {data.label === "user" && (
-            <div className="flex justify-end gap-4">
-              <button onClick={onClickAddPrompt}>Add message</button>
-              <button onClick={onClickGenerateResponse}>
-                Generate response
-              </button>
-            </div>
-          )}
-          {data.label === "assistant" && (
-            <div className="flex justify-between gap-4">
+        <div
+          className={`${
+            data.label === "user" ? "bg-gray-50" : "bg-white"
+          } border 
+          ${
+            data.label === "user" ? "border-gray-400" : "border-gray-300"
+          } rounded-lg w-[750px] p-2`}
+        >
+          <div className="flex justify-between text-xs text-gray-400 mb-1">
+            <div>{data.label === "user" ? "you" : "gpt-4o-mini"}</div>
+            {data.parent_id && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onClickCopy();
+                  onClickDelete();
                 }}
               >
-                {copyText}
+                Delete
               </button>
-              <button onClick={onClickAddPrompt}>Add message</button>
-            </div>
+            )}
+          </div>
+          {data.label === "user" && (
+            <TextareaAutosize
+              value={prompt}
+              onChange={(e) => {
+                setPrompt(e.target.value);
+              }}
+              onClick={(e) => {
+                e.stopPropagation(); // this is so that i can click directly into the textarea
+              }}
+              ref={textareaRef}
+              className="nopan bg-gray-50" // nopan so that highlighting in the textarea doesn't drag the tree view
+              style={{
+                width: "100%",
+                border: "none",
+                resize: "none",
+                outline: "none",
+                fontFamily: "inherit",
+                fontSize: "inherit",
+              }}
+            />
           )}
-        </div>
-      </div>
+          {data.label === "assistant" && (
+            <ReactMarkdown
+              className="assistant-message nopan"
+              remarkPlugins={[remarkGfm, remarkBreaks, remarkMath]}
+              rehypePlugins={[rehypeRaw, rehypeKatex]}
+              components={{
+                code: (props) => {
+                  const { children, className } = props;
+                  const match = /language-(\w+)/.exec(className || ""); // extract code language from className
+                  return (
+                    <CodeHighlighter
+                      language={match ? match[1] : "text"} // default to normal text if no language
+                      code={String(children)}
+                    />
+                  );
+                },
+              }}
+            >
+              {`${translateLaTex(
+                awaitingResponse && id === nodeId
+                  ? streamedMessage + " ▎"
+                  : prompt
+              )}`}
+            </ReactMarkdown>
+          )}
 
-      {data.height > 1 && (
-        <Handle type="target" position={Position.Top} isConnectable={false} />
-      )}
-      {data.height > 1 && (
-        <Handle
-          type="source"
-          position={Position.Bottom}
-          isConnectable={false}
-          style={{ visibility: awaitingResponse ? "hidden" : "visible" }} // hide bottom handle when streaming response
-        />
-      )}
-    </div>
+          <div className="text-xs text-gray-400 mt-1">
+            {data.label === "user" && (
+              <div className="flex justify-end gap-4">
+                <button onClick={onClickAddPrompt}>Add message</button>
+                <button onClick={onClickGenerateResponse}>
+                  Generate response
+                </button>
+              </div>
+            )}
+            {data.label === "assistant" && (
+              <div className="flex justify-between gap-4">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onClickCopy();
+                  }}
+                >
+                  {copyText}
+                </button>
+                <button onClick={onClickAddPrompt}>Add message</button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {data.height > 1 && (
+          <Handle type="target" position={Position.Top} isConnectable={false} />
+        )}
+        {data.height > 1 && (
+          <Handle
+            type="source"
+            position={Position.Bottom}
+            isConnectable={false}
+            style={{ visibility: awaitingResponse ? "hidden" : "visible" }} // hide bottom handle when streaming response
+          />
+        )}
+      </div>
+      <DeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={() => {
+          setShowDeleteModal(false);
+          deleteNode();
+        }}
+      />
+    </>
   );
 }
