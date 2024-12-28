@@ -264,6 +264,7 @@ export default function Node({
                   e.stopPropagation();
                   onClickDelete();
                 }}
+                className="hover:text-red-600 transition ease-in-out"
               >
                 Delete
               </button>
@@ -319,25 +320,41 @@ export default function Node({
           <div className="text-xs text-gray-400 mt-1">
             {data.label === "user" && (
               <div className="flex justify-end gap-4">
-                <button onClick={onClickAddPrompt}>Add message</button>
-                <button onClick={onClickGenerateResponse}>
+                <button
+                  onClick={onClickAddPrompt}
+                  className="hover:text-gray-600 transition ease-in-out"
+                >
+                  Add message
+                </button>
+                <button
+                  onClick={onClickGenerateResponse}
+                  className="hover:text-gray-600 transition ease-in-out disabled:hover:text-gray-400 disabled:cursor-not-allowed"
+                  disabled={!prompt}
+                >
                   Generate response
                 </button>
               </div>
             )}
-            {data.label === "assistant" && (
-              <div className="flex justify-between gap-4">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onClickCopy();
-                  }}
-                >
-                  {copyText}
-                </button>
-                <button onClick={onClickAddPrompt}>Add message</button>
-              </div>
-            )}
+            {data.label === "assistant" &&
+              !(nodeId === id && awaitingResponse) && ( // don't show copy and add message buttons when streaming
+                <div className="flex justify-between gap-4">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onClickCopy();
+                    }}
+                    className="hover:text-gray-600 transition ease-in-out"
+                  >
+                    {copyText}
+                  </button>
+                  <button
+                    onClick={onClickAddPrompt}
+                    className="hover:text-gray-600 transition ease-in-out"
+                  >
+                    Add message
+                  </button>
+                </div>
+              )}
           </div>
         </div>
 
