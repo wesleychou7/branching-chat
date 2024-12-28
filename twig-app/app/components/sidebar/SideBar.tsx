@@ -24,7 +24,7 @@ const SideBar = ({
       id: uuidv4(),
       name: "New Chat",
     };
-    setChats((prevChats) => [...prevChats, newChat]);
+    setChats((prevChats) => [newChat, ...prevChats]);
     setSelectedChatID(newChat.id);
 
     // update database
@@ -49,15 +49,17 @@ const SideBar = ({
         <div className="ml-2 text-sm text-green-700">Start a new chat</div>
       </button>
 
-      <div className=" overflow-auto">
+      <div className="overflow-auto">
         {chats.map((chat) => (
-          <SavedChat
-            key={chat.id}
-            name={chat.name}
-            chat_id={chat.id}
-            selectedChatID={selectedChatID}
-            setSelectedChatID={setSelectedChatID}
-          />
+          <div key={chat.id} className="mb-1">
+            <SavedChat
+              name={chat.name}
+              chat_id={chat.id}
+              selectedChatID={selectedChatID}
+              setSelectedChatID={setSelectedChatID}
+              setChats={setChats}
+            />
+          </div>
         ))}
       </div>
     </div>
