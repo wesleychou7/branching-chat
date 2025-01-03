@@ -61,6 +61,8 @@ const SavedChat = ({
   async function onClickDelete() {
     setChats((prevChats) => prevChats.filter((chat) => chat.id !== chat_id));
 
+    if (selectedChatID === chat_id) setSelectedChatID(null);
+
     const response = await supabase.from("chats").delete().eq("id", chat_id);
 
     if (response.error) console.error(response.error);

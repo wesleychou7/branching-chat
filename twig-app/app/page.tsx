@@ -39,7 +39,7 @@ export default function Home() {
 
   useEffect(() => {
     if (selectedChatID) getMessages(selectedChatID);
-    // else setMessages([]);
+    else setMessages([]);
   }, [selectedChatID]);
 
   useEffect(() => {
