@@ -70,10 +70,10 @@ const SideBar = ({
         <button>Twig</button>
       </div>
 
-      <div className="p-2">
+      <div className="p-2 mb-4">
         <button
           onClick={addNewChat}
-          className="flex items-center justify-center w-full p-2 border-2 border-green-700 rounded-lg hover:bg-green-100 mb-5"
+          className="flex items-center justify-center w-full p-2 border-2 border-green-700 rounded-lg hover:bg-green-100"
         >
           <MapsUgcRoundedIcon fontSize="small" style={{ color: "green" }} />
           <div className="ml-2 text-sm text-green-700">Start a new chat</div>
@@ -93,6 +93,8 @@ const SideBar = ({
           </div>
         ))}
       </div>
+
+      <div className="h-20 border border-red-200"></div>
     </div>
   );
 };
