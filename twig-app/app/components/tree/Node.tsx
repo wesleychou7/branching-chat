@@ -154,6 +154,31 @@ export default function Node({
     if (response.error) console.error(response.error);
   }
 
+  async function generateChatName(
+    userMessage: string,
+    assistantResponse: string
+  ): Promise<string> {
+    const chatName = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content:
+            "Summarize the conversation in 4 words or fewer, using title case. Be as concise as possible. Do not use any punctutaion.",
+        },
+        {
+          role: "user",
+          content: userMessage,
+        },
+        {
+          role: "assistant",
+          content: assistantResponse,
+        },
+      ],
+    });
+    return chatName?.choices[0]?.message?.content || "A Conversation";
+  }
+
   async function onClickGenerateResponse() {
     const responseId = uuidv4();
     dispatch(setNodeId(responseId));
@@ -228,6 +253,27 @@ export default function Node({
     });
 
     dispatch(setAwaitingResponse(false));
+
+    if (messages.length <= 1) {
+      const chatName = await generateChatName(prompt, accumulatedContent);
+      setChats((prev: ChatType[]) => {
+        const newChats = [...prev];
+        const index = newChats.findIndex(
+          (chat: ChatType) => chat.id === selectedChatID
+        );
+        if (index !== -1) {
+          newChats[index].name = chatName;
+        }
+        return newChats;
+      });
+
+      const response = await supabase
+        .from("chats")
+        .update({ name: chatName })
+        .eq("id", selectedChatID);
+
+      if (response.error) console.error(response.error);
+    }
 
     // add message to database with final content
     const response = await supabase.from("messages").insert({
