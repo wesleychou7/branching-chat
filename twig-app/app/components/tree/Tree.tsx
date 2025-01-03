@@ -8,7 +8,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import Dagre from "@dagrejs/dagre";
 import { useState, useRef, useEffect } from "react";
-import { MessageType, NodeType, EdgeType } from "@/app/components/types";
+import { MessageType, NodeType, EdgeType, ChatType } from "@/app/components/types";
 import Node from "./Node";
 import "./Node.css";
 
@@ -183,11 +183,23 @@ const getLayoutedElements = (nodes: any[], edges: any[]) => {
 
 interface Props {
   selectedChatID: string | null;
+  setSelectedChatID: React.Dispatch<React.SetStateAction<string | null>>;
+  setChats?: React.Dispatch<React.SetStateAction<ChatType[]>>;
   messages: MessageType[];
-  setMessages: React.Dispatch<React.SetStateAction<MessageType[]>>;
+  setMessages?: React.Dispatch<React.SetStateAction<MessageType[]>>;
+  newChat?: boolean;
+  setNewChat?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function Tree({ selectedChatID, messages, setMessages }: Props) {
+export default function Tree({
+  selectedChatID,
+  setSelectedChatID,
+  setChats,
+  messages,
+  setMessages,
+  newChat,
+  setNewChat,
+}: Props) {
   const [heightsCalculated, setHeightsCalculated] = useState<boolean>(false);
   const [nodes, setNodes] = useState<NodeType[]>([]);
   const [edges, setEdges] = useState<EdgeType[]>([]);
@@ -199,8 +211,12 @@ export default function Tree({ selectedChatID, messages, setMessages }: Props) {
       <Node
         {...props}
         selectedChatID={selectedChatID}
+        setSelectedChatID={setSelectedChatID}
+        setChats={setChats}
         messages={messages}
         setMessages={setMessages}
+        newChat={newChat}
+        setNewChat={setNewChat}
       />
     ),
   };
@@ -262,26 +278,24 @@ export default function Tree({ selectedChatID, messages, setMessages }: Props) {
   if (!heightsCalculated) {
     return (
       <div style={{ visibility: "hidden" }}>
-        {nodes
-          .filter((node) => node.message.id !== "-1")
-          .map((node, index) => {
-            return (
-              <div
-                ref={(el: HTMLDivElement | null) => {
-                  refs.current[index] = el;
-                }}
-                key={index}
-                id={node.id}
-              >
-                <Node {...node} />
-              </div>
-            );
-          })}
+        {nodes.map((node, index) => {
+          return (
+            <div
+              ref={(el: HTMLDivElement | null) => {
+                refs.current[index] = el;
+              }}
+              key={index}
+              id={node.id}
+            >
+              <Node {...node} />
+            </div>
+          );
+        })}
       </div>
     );
   } else {
     return (
-      <div style={{ width: "100%", height: "100%" }}>
+      <div className="w-full h-full">
         <ReactFlowProvider>
           <ReactFlow
             nodes={nodes}
@@ -298,10 +312,16 @@ export default function Tree({ selectedChatID, messages, setMessages }: Props) {
               viewportRef.current = viewport;
             }}
             nodesDraggable={false}
-            panOnScroll
+            panOnDrag={!newChat}
+            panOnScroll={!newChat}
             panOnScrollSpeed={1.5}
+            zoomOnScroll={!newChat}
             minZoom={0.2}
             noPanClassName="nopan"
+            fitView={newChat}
+            fitViewOptions={{
+              maxZoom: 1.1,
+            }}
           >
             <Background />
           </ReactFlow>

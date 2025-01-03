@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import SideBar from "@/app/components/sidebar/SideBar";
 import Tree from "@/app/components/tree/Tree";
 import supabase from "@/app/supabase";
@@ -11,6 +11,10 @@ export default function Home() {
   const [selectedChatID, setSelectedChatID] = useState<string | null>(null);
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [chats, setChats] = useState<ChatType[]>([]);
+
+  console.log(messages);
+  console.log(chats);
+  console.log(selectedChatID);
 
   async function getMessages(chat_id: string) {
     const { data, error } = await supabase
@@ -35,7 +39,7 @@ export default function Home() {
 
   useEffect(() => {
     if (selectedChatID) getMessages(selectedChatID);
-    else setMessages([]);
+    // else setMessages([]);
   }, [selectedChatID]);
 
   useEffect(() => {
@@ -54,6 +58,7 @@ export default function Home() {
           setSelectedChatID={setSelectedChatID}
           chats={chats}
           setChats={setChats}
+          setMessages={setMessages}
         />
       </div>
       <button
@@ -64,15 +69,19 @@ export default function Home() {
       </button>
 
       <div className="h-full w-full z-0">
-        <Tree
-          selectedChatID={selectedChatID}
-          messages={messages}
-          setMessages={setMessages}
-        />
+        {useMemo(
+          () => (
+            <Tree
+              selectedChatID={selectedChatID}
+              setSelectedChatID={setSelectedChatID}
+              setChats={setChats}
+              messages={messages}
+              setMessages={setMessages}
+            />
+          ),
+          [selectedChatID, messages, setMessages]
+        )}
       </div>
     </div>
   );
 }
-
-
-// fix streaming renders

@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { Handle, Position } from "@xyflow/react";
-import { MessageType } from "@/app/components/types";
+import { MessageType, ChatType } from "@/app/components/types";
 import TextareaAutosize from "react-textarea-autosize";
 import supabase from "@/app/supabase";
 import { v4 as uuidv4 } from "uuid";
@@ -48,8 +48,12 @@ export default function Node({
   id, // THIS IS A STRING
   data,
   selectedChatID,
+  setSelectedChatID,
+  setChats,
   messages,
   setMessages,
+  newChat,
+  setNewChat,
 }: any) {
   const [prompt, setPrompt] = useState<string>(data.value);
   const timeoutRef = useRef<NodeJS.Timeout>();
@@ -322,7 +326,8 @@ export default function Node({
               <div className="flex justify-end gap-4">
                 <button
                   onClick={onClickAddPrompt}
-                  className="hover:text-gray-600 transition ease-in-out"
+                  className="hover:text-gray-600 transition ease-in-out disabled:hover:text-gray-400 disabled:cursor-not-allowed"
+                  disabled={messages?.length <= 1}
                 >
                   Add message
                 </button>

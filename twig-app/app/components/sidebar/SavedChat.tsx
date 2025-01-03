@@ -59,9 +59,7 @@ const SavedChat = ({
   }
 
   async function onClickDelete() {
-    setChats((prevChats) =>
-      prevChats.filter((chat) => chat.id !== chat_id)
-    );
+    setChats((prevChats) => prevChats.filter((chat) => chat.id !== chat_id));
 
     const response = await supabase.from("chats").delete().eq("id", chat_id);
 
@@ -79,7 +77,9 @@ const SavedChat = ({
       }}
     >
       <button
-        onClick={() => setSelectedChatID(chat_id)}
+        onClick={() => {
+          setSelectedChatID(chat_id);
+        }}
         className="cursor-pointer pl-3 pr-0 w-full overflow-hidden text-left text-sm border-none bg-transparent h-[35px]"
       >
         <div
@@ -155,14 +155,10 @@ const SavedChat = ({
             </DialogClose>
             {renameInput && renameInput !== name ? (
               <DialogClose>
-                <Button onClick={onClickSaveRename}>
-                  Save
-                </Button>
+                <Button onClick={onClickSaveRename}>Save</Button>
               </DialogClose>
             ) : (
-              <Button disabled>
-                Save
-              </Button>
+              <Button disabled>Save</Button>
             )}
           </DialogFooter>
         </DialogContent>
