@@ -253,7 +253,7 @@ export default function Tree({
       const newNodes: NodeType[] = [];
       for (const ref of refs.current) {
         if (ref) {
-          const height = ref.offsetHeight;
+          const height = ref.offsetHeight - 1;
           const node = nodes.find((node) => node.id === ref.id);
           if (node) {
             newNodes.push({
