@@ -48,12 +48,9 @@ export default function Node({
   id, // THIS IS A STRING
   data,
   selectedChatID,
-  setSelectedChatID,
   setChats,
   messages,
   setMessages,
-  newChat,
-  setNewChat,
 }: any) {
   const [prompt, setPrompt] = useState<string>(data.value);
   const timeoutRef = useRef<NodeJS.Timeout>();
@@ -323,6 +320,7 @@ export default function Node({
           {data.label === "user" && (
             <TextareaAutosize
               value={prompt}
+              placeholder={data.parent_id ? "Type your message..." : "Ask anything..."}
               onChange={(e) => {
                 setPrompt(e.target.value);
               }}

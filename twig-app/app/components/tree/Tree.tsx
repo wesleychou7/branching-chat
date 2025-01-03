@@ -193,12 +193,9 @@ interface Props {
 
 export default function Tree({
   selectedChatID,
-  setSelectedChatID,
   setChats,
   messages,
   setMessages,
-  newChat,
-  setNewChat,
 }: Props) {
   const [heightsCalculated, setHeightsCalculated] = useState<boolean>(false);
   const [nodes, setNodes] = useState<NodeType[]>([]);
@@ -211,12 +208,9 @@ export default function Tree({
       <Node
         {...props}
         selectedChatID={selectedChatID}
-        setSelectedChatID={setSelectedChatID}
         setChats={setChats}
         messages={messages}
         setMessages={setMessages}
-        newChat={newChat}
-        setNewChat={setNewChat}
       />
     ),
   };
@@ -312,13 +306,10 @@ export default function Tree({
               viewportRef.current = viewport;
             }}
             nodesDraggable={false}
-            panOnDrag={!newChat}
-            panOnScroll={!newChat}
+            panOnScroll
             panOnScrollSpeed={1.5}
-            zoomOnScroll={!newChat}
             minZoom={0.2}
             noPanClassName="nopan"
-            fitView={newChat}
             fitViewOptions={{
               maxZoom: 1.1,
             }}
