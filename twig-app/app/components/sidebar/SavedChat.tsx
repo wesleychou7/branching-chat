@@ -130,9 +130,9 @@ const SavedChat = ({
 
       <Dialog
         open={dialogOpen}
-        onOpenChange={() => {
-          setDialogOpen(!dialogOpen);
-          setRenameInput(name);
+        onOpenChange={(open) => {
+          if (open) setRenameInput(name);
+          setDialogOpen(open);
         }}
       >
         <DialogContent className="max-w-[400px]">

@@ -65,22 +65,24 @@ const SideBar = ({
   };
 
   return (
-    <div className="w-full h-full bg-gray-50 p-2 flex flex-col">
-      <div className="flex justify-end h-12">
+    <div className="w-full h-full bg-gray-50 flex flex-col">
+      <div className="flex justify-end h-12 p-2">
         <button>Twig</button>
       </div>
 
-      <button
-        onClick={addNewChat}
-        className="flex items-center justify-center w-full p-2 border-2 border-green-700 rounded-lg hover:bg-green-100 mb-5"
-      >
-        <MapsUgcRoundedIcon fontSize="small" style={{ color: "green" }} />
-        <div className="ml-2 text-sm text-green-700">Start a new chat</div>
-      </button>
+      <div className="p-2">
+        <button
+          onClick={addNewChat}
+          className="flex items-center justify-center w-full p-2 border-2 border-green-700 rounded-lg hover:bg-green-100 mb-5"
+        >
+          <MapsUgcRoundedIcon fontSize="small" style={{ color: "green" }} />
+          <div className="ml-2 text-sm text-green-700">Start a new chat</div>
+        </button>
+      </div>
 
-      <div className="overflow-auto">
+      <div className="overflow-auto pl-2">
         {chats.map((chat) => (
-          <div key={chat.id} className="mb-1">
+          <div key={chat.id} className="mb-1 pr-2">
             <SavedChat
               name={chat.name}
               chat_id={chat.id}
