@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.33.1",
     "@dagrejs/dagre": "^1.1.4",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
