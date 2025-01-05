@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useContext } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { MessageType, ChatType } from "@/app/components/types";
 import TextareaAutosize from "react-textarea-autosize";
@@ -8,6 +8,7 @@ import OpenAI from "openai";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
+import { ModelContext } from "@/app/page";
 import {
   setNodeId,
   appendStreamedMessage,
@@ -52,6 +53,7 @@ export default function Node({
   messages,
   setMessages,
 }: any) {
+  const model = useContext(ModelContext);
   const [prompt, setPrompt] = useState<string>(data.value);
   const timeoutRef = useRef<NodeJS.Timeout>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -181,6 +183,8 @@ export default function Node({
     dispatch(setNodeId(responseId));
     dispatch(setAwaitingResponse(true));
     dispatch(clearStreamedMessage());
+    const modelNameUsed = model.name;
+    const modelAliasUsed = model.alias;
 
     setMessages((prev: MessageType[]) =>
       prev.map((msg: MessageType) => {
@@ -194,6 +198,7 @@ export default function Node({
       id: responseId,
       parent_id: id,
       role: "assistant",
+      model_name: modelNameUsed,
       content: "",
     };
     setMessages((prev: MessageType[]) => prev.concat(newMessage));
@@ -222,7 +227,7 @@ export default function Node({
     })();
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: modelAliasUsed,
       messages: [
         { role: "system", content: "You are a helpful assistant." },
         ...(parentMessages as ChatCompletionMessageParam[]),
@@ -276,9 +281,10 @@ export default function Node({
     const response = await supabase.from("messages").insert({
       id: responseId,
       chat_id: selectedChatID,
-      role: "assistant",
-      content: accumulatedContent,
       parent_id: id,
+      role: "assistant",
+      model_name: modelNameUsed,
+      content: accumulatedContent,
     });
 
     if (response.error) console.error(response.error);
@@ -304,7 +310,7 @@ export default function Node({
           } rounded-lg w-[750px] p-2`}
         >
           <div className="flex justify-between text-xs text-gray-400 mb-1">
-            <div>{data.label === "user" ? "you" : "gpt-4o-mini"}</div>
+            <div>{data.label === "user" ? "you" : data.model_name}</div>
             {data.parent_id && (
               <button
                 onClick={(e) => {

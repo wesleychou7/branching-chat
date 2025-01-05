@@ -7,6 +7,7 @@ type MessageType = {
    id: string;
    parent_id: string | null;
    role: string;
+   model_name?: string;
    content: string | null;
 }
 
@@ -18,6 +19,7 @@ type NodeType = {
      id: string;
      parent_id: string | null;
      label: string;
+     model_name: string | null;
      value: string;
      height: number;
    };

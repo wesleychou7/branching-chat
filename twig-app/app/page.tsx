@@ -1,20 +1,37 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, createContext } from "react";
 import SideBar from "@/app/components/sidebar/SideBar";
 import Tree from "@/app/components/tree/Tree";
 import supabase from "@/app/supabase";
 import { ChatType, MessageType } from "@/app/components/types";
 import { PiSidebarSimpleBold } from "react-icons/pi";
+import MapsUgcRoundedIcon from "@mui/icons-material/MapsUgcRounded";
+import { IoIosArrowDown } from "react-icons/io";
+import { createNewChat } from "@/app/components/sidebar/SideBar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+type Model = {
+  name: string;
+  alias: string;
+};
+export const ModelContext = createContext<Model>({
+  name: "",
+  alias: "",
+});
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [selectedChatID, setSelectedChatID] = useState<string | null>(null);
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [chats, setChats] = useState<ChatType[]>([]);
-
-  console.log(messages);
-  console.log(chats);
-  console.log(selectedChatID);
+  const [modelName, setModelName] = useState<string>("GPT-4o");
+  const [modelAlias, setModelAlias] = useState<string>("chatgpt-4o-latest");
 
   async function getMessages(chat_id: string) {
     const { data, error } = await supabase
@@ -47,41 +64,105 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="w-screen h-screen">
-      <div
-        className={`fixed top-0 left-0 z-50 h-full w-2/12 transition-transform duration-300 ease-in-out ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <SideBar
-          selectedChatID={selectedChatID}
-          setSelectedChatID={setSelectedChatID}
-          chats={chats}
-          setChats={setChats}
-          setMessages={setMessages}
-        />
+    <ModelContext.Provider
+      value={{
+        name: modelName,
+        alias: modelAlias,
+      }}
+    >
+      <div className="w-screen h-screen">
+        <div
+          className={`fixed top-0 left-0 z-50 h-full w-2/12 transition-transform duration-300 ease-in-out ${
+            sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <SideBar
+            selectedChatID={selectedChatID}
+            setSelectedChatID={setSelectedChatID}
+            chats={chats}
+            setChats={setChats}
+            setMessages={setMessages}
+          />
+        </div>
+        <div className="absolute top-0 left-0 z-50 text-gray-600">
+          <div className="flex p-2">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="hover:bg-gray-200 rounded-lg p-1.5 mr-1 transition ease-in-out"
+            >
+              <PiSidebarSimpleBold size={25} />
+            </button>
+            <div
+              className={`flex transition-all duration-200 ${
+                sidebarOpen ? "opacity-0 invisible" : "opacity-100 visible"
+              }`}
+            >
+              <button
+                className="hover:bg-gray-200 rounded-lg p-1.5 pt-[3px] transition ease-in-out"
+                onClick={() =>
+                  createNewChat(setChats, setSelectedChatID, setMessages)
+                }
+              >
+                <MapsUgcRoundedIcon fontSize="medium" />
+              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div className="hover:bg-gray-200 rounded-lg px-2 h-full flex items-center gap-1 transition ease-in-out cursor-pointer">
+                    <div className="font-medium">{modelName}</div>
+                    <IoIosArrowDown />
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56">
+                  <DropdownMenuLabel className="font-normal text-gray-400 text-xs">
+                    Select a model
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => {
+                      setModelName("GPT-4o");
+                      setModelAlias("chatgpt-4o-latest");
+                    }}
+                  >
+                    GPT-4o
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => {
+                      setModelName("GPT-4o mini");
+                      setModelAlias("gpt-4o-mini");
+                    }}
+                  >
+                    GPT-4o mini
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => {
+                      setModelName("Claude 3.5 Sonnet");
+                      setModelAlias("Claude 3.5 Sonnet");
+                    }}
+                  >
+                    Claude 3.5 Sonnet
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </div>
+        <div className="h-full w-full z-0">
+          {useMemo(
+            () => (
+              <Tree
+                selectedChatID={selectedChatID}
+                setSelectedChatID={setSelectedChatID}
+                setChats={setChats}
+                messages={messages}
+                setMessages={setMessages}
+              />
+            ),
+            [selectedChatID, messages, setMessages]
+          )}
+        </div>
       </div>
-      <button
-        className="absolute top-2 left-2 z-50 p-1.5 rounded-lg hover:bg-gray-200"
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-      >
-        <PiSidebarSimpleBold size={25} />
-      </button>
-
-      <div className="h-full w-full z-0">
-        {useMemo(
-          () => (
-            <Tree
-              selectedChatID={selectedChatID}
-              setSelectedChatID={setSelectedChatID}
-              setChats={setChats}
-              messages={messages}
-              setMessages={setMessages}
-            />
-          ),
-          [selectedChatID, messages, setMessages]
-        )}
-      </div>
-    </div>
+    </ModelContext.Provider>
   );
 }

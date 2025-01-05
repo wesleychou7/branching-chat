@@ -228,6 +228,7 @@ export default function Tree({
           id: message.id,
           parent_id: message.parent_id,
           label: message.role,
+          model_name: message.model_name || null,
           value: message.content || "",
           height: 1,
         },
