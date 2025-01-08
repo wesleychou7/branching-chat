@@ -138,10 +138,19 @@ export default function Home() {
                     className="cursor-pointer"
                     onClick={() => {
                       setModelName("Claude 3.5 Sonnet");
-                      setModelAlias("Claude 3.5 Sonnet");
+                      setModelAlias("claude-3-5-sonnet-latest");
                     }}
                   >
                     Claude 3.5 Sonnet
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => {
+                      setModelName("Claude 3.5 Haiku");
+                      setModelAlias("claude-3-5-haiku-latest");
+                    }}
+                  >
+                    Claude 3.5 Haiku
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
