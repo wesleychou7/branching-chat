@@ -10,7 +10,6 @@ interface Props {
   setSelectedChatID: Dispatch<SetStateAction<string | null>>;
   chats: ChatType[];
   setChats: Dispatch<SetStateAction<ChatType[]>>;
-  setMessages: Dispatch<SetStateAction<MessageType[]>>;
 }
 
 export async function createNewChat(
@@ -66,27 +65,10 @@ export default function SideBar({
   setSelectedChatID,
   chats,
   setChats,
-  setMessages,
 }: Props) {
   return (
-    <div className="w-full h-full bg-gray-50 flex flex-col">
-      <div className="flex justify-end h-12 p-2">
-        <button>Twig</button>
-      </div>
-
-      <div className="p-2">
-        <button
-          onClick={() =>
-            createNewChat(setChats, setSelectedChatID, setMessages)
-          }
-          className="flex items-center justify-center w-full p-2 border-2 border-green-700 rounded-lg hover:bg-green-100 mb-5"
-        >
-          <MapsUgcRoundedIcon fontSize="small" style={{ color: "green" }} />
-          <div className="ml-2 text-sm text-green-700">Start a new chat</div>
-        </button>
-      </div>
-
-      <div className="overflow-auto pl-2">
+    <div className="w-full h-full bg-gray-50 flex flex-col ">
+      <div className="overflow-auto pl-2 h-full mt-14">
         {chats.map((chat) => (
           <div key={chat.id} className="mb-1 pr-2">
             <SavedChat

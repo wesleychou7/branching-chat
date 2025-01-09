@@ -72,7 +72,7 @@ export default function Home() {
     >
       <div className="w-screen h-screen">
         <div
-          className={`fixed top-0 left-0 z-50 h-full w-2/12 transition-transform duration-300 ease-in-out ${
+          className={`fixed top-0 left-0 z-50 h-full w-2/12 duration-300 ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -81,7 +81,6 @@ export default function Home() {
             setSelectedChatID={setSelectedChatID}
             chats={chats}
             setChats={setChats}
-            setMessages={setMessages}
           />
         </div>
         <div className="absolute top-0 left-0 z-50 text-gray-600">
@@ -92,13 +91,16 @@ export default function Home() {
             >
               <PiSidebarSimpleBold size={25} />
             </button>
+
             <div
-              className={`flex transition-all duration-200 ${
-                sidebarOpen ? "opacity-0 invisible" : "opacity-100 visible"
+              className={`flex items-center duration-300 ${
+                sidebarOpen ? "translate-x-40" : "-translate-x-0"
               }`}
             >
               <button
-                className="hover:bg-gray-200 rounded-lg p-1.5 pt-[3px] transition ease-in-out"
+                className={`hover:bg-gray-200 rounded-lg p-1.5 pt-[3px] ${
+                  sidebarOpen ? "mr-4" : ""
+                }`}
                 onClick={() =>
                   createNewChat(setChats, setSelectedChatID, setMessages)
                 }
