@@ -98,7 +98,7 @@ export default function Home() {
               }`}
             >
               <button
-                className={`hover:bg-gray-200 rounded-lg p-1.5 pt-[3px] ${
+                className={`hover:bg-gray-200 rounded-lg p-1.5 pt-[3px] transition ease-in-out ${
                   sidebarOpen ? "mr-4" : ""
                 }`}
                 onClick={() =>

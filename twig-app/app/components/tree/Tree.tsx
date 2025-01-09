@@ -8,7 +8,12 @@ import {
 import "@xyflow/react/dist/style.css";
 import Dagre from "@dagrejs/dagre";
 import { useState, useRef, useEffect } from "react";
-import { MessageType, NodeType, EdgeType, ChatType } from "@/app/components/types";
+import {
+  MessageType,
+  NodeType,
+  EdgeType,
+  ChatType,
+} from "@/app/components/types";
 import Node from "./Node";
 import "./Node.css";
 
@@ -270,55 +275,53 @@ export default function Tree({
     }
   }, [heightsCalculated, nodes, edges]);
 
-  if (!heightsCalculated) {
-    return (
-      <div style={{ visibility: "hidden" }}>
-        {nodes.map((node, index) => {
-          return (
-            <div
-              ref={(el: HTMLDivElement | null) => {
-                refs.current[index] = el;
-              }}
-              key={index}
-              id={node.id}
-            >
-              <Node {...node} />
-            </div>
-          );
-        })}
-      </div>
-    );
-  } else {
-    return (
-      <div className="w-full h-full">
-        <ReactFlowProvider>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            nodeTypes={nodeTypes}
-            onNodesChange={(changes) =>
-              setNodes((nds) => applyNodeChanges(changes, nds))
-            }
-            onEdgesChange={(changes) =>
-              setEdges((eds) => applyEdgeChanges(changes, eds))
-            }
-            defaultViewport={viewportRef.current}
-            onViewportChange={(viewport) => {
-              viewportRef.current = viewport;
-            }}
-            nodesDraggable={false}
-            panOnScroll
-            panOnScrollSpeed={1.5}
-            minZoom={0.2}
-            noPanClassName="nopan"
-            fitViewOptions={{
-              maxZoom: 1.1,
-            }}
-          >
-            <Background />
-          </ReactFlow>
-        </ReactFlowProvider>
-      </div>
-    );
-  }
+  return (
+    <div className="w-full h-full">
+      {!heightsCalculated && (
+        <div style={{ visibility: "hidden" }}>
+          {nodes.map((node, index) => {
+            return (
+              <div
+                ref={(el: HTMLDivElement | null) => {
+                  refs.current[index] = el;
+                }}
+                key={index}
+                id={node.id}
+              >
+                <Node {...node} />
+              </div>
+            );
+          })}
+        </div>
+      )}
+      <ReactFlowProvider>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          onNodesChange={(changes) =>
+            setNodes((nds) => applyNodeChanges(changes, nds))
+          }
+          onEdgesChange={(changes) =>
+            setEdges((eds) => applyEdgeChanges(changes, eds))
+          }
+          defaultViewport={viewportRef.current}
+          onViewportChange={(viewport) => {
+            viewportRef.current = viewport;
+          }}
+          nodesDraggable={false}
+          panOnScroll
+          panOnScrollSpeed={1.5}
+          minZoom={0.2}
+          noPanClassName="nopan"
+          fitViewOptions={{
+            maxZoom: 1.1,
+          }}
+        >
+          <Background />
+        </ReactFlow>
+      </ReactFlowProvider>
+    </div>
+  );
+  // }
 }
