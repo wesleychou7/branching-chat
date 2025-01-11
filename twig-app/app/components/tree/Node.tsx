@@ -5,7 +5,6 @@ import TextareaAutosize from "react-textarea-autosize";
 import supabase from "@/app/supabase";
 import { v4 as uuidv4 } from "uuid";
 import OpenAI from "openai";
-import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import { generateResponse } from "@/lib/llms";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
@@ -44,25 +43,6 @@ const openai = new OpenAI({
     "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",
   dangerouslyAllowBrowser: true,
 });
-
-import Anthropic from "@anthropic-ai/sdk";
-const anthropic = new Anthropic({
-  // apiKey: process.env.ANTHROPIC_API_KEY,
-  apiKey:
-    "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",
-  dangerouslyAllowBrowser: true,
-});
-
-// const msg = anthropic.messages.create({
-//   model: "claude-3-5-sonnet-20241022",
-//   max_tokens: 1024,
-//   messages: [{ role: "user", content: "Hello, Claude" }],
-// });
-
-// (async () => {
-//   const response = await msg;
-//   console.log(response.content[0].text);
-// })();
 
 // props must be any type bc of dagre
 export default function Node({
@@ -246,26 +226,12 @@ export default function Node({
       return result.reverse();
     })();
 
-    // const completion = await openai.chat.completions.create({
-    //   model: modelAliasUsed,
-    //   messages: [
-    //     { role: "system", content: "You are a helpful assistant." },
-    //     ...(parentMessages as ChatCompletionMessageParam[]),
-    //   ],
-    //   stream: true,
-    // });
-
-    // let accumulatedContent = "";
-
-    // for await (const chunk of completion) {
-    //   const content = chunk.choices[0]?.delta?.content || "";
-    //   accumulatedContent += content;
-    //   dispatch(appendStreamedMessage(content));
-    // }
-
     let accumulatedContent = "";
     try {
-      for await (const token of generateResponse(modelAliasUsed, parentMessages)) {
+      for await (const token of generateResponse(
+        modelAliasUsed,
+        parentMessages
+      )) {
         accumulatedContent += token;
         dispatch(appendStreamedMessage(token));
       }
@@ -285,6 +251,14 @@ export default function Node({
     });
 
     dispatch(setAwaitingResponse(false));
+
+    // add prompt message to database
+    const response1 = await supabase
+      .from("messages")
+      .update({ content: prompt })
+      .eq("id", id);
+
+    if (response1.error) console.error(response1.error);
 
     if (messages.length <= 1) {
       const chatName = await generateChatName(prompt, accumulatedContent);
@@ -307,8 +281,8 @@ export default function Node({
       if (response.error) console.error(response.error);
     }
 
-    // add message to database with final content
-    const response = await supabase.from("messages").insert({
+    // add response to database
+    const response2 = await supabase.from("messages").insert({
       id: responseId,
       chat_id: selectedChatID,
       parent_id: id,
@@ -317,7 +291,7 @@ export default function Node({
       content: accumulatedContent,
     });
 
-    if (response.error) console.error(response.error);
+    if (response2.error) console.error(response2.error);
   }
 
   function onClickCopy() {

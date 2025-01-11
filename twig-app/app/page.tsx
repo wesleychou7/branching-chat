@@ -15,6 +15,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ReactFlowProvider } from "@xyflow/react";
 
 type Model = {
   name: string;
@@ -160,18 +161,20 @@ export default function Home() {
           </div>
         </div>
         <div className="h-full w-full z-0">
-          {useMemo(
-            () => (
-              <Tree
-                selectedChatID={selectedChatID}
-                setSelectedChatID={setSelectedChatID}
-                setChats={setChats}
-                messages={messages}
-                setMessages={setMessages}
-              />
-            ),
-            [selectedChatID, messages, setMessages]
-          )}
+          <ReactFlowProvider>
+            {useMemo(
+              () => (
+                <Tree
+                  selectedChatID={selectedChatID}
+                  setSelectedChatID={setSelectedChatID}
+                  setChats={setChats}
+                  messages={messages}
+                  setMessages={setMessages}
+                />
+              ),
+              [selectedChatID, messages, setMessages]
+            )}
+          </ReactFlowProvider>
         </div>
       </div>
     </ModelContext.Provider>

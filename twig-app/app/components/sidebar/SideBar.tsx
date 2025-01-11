@@ -1,4 +1,3 @@
-import MapsUgcRoundedIcon from "@mui/icons-material/MapsUgcRounded";
 import SavedChat from "./SavedChat";
 import { Dispatch, SetStateAction } from "react";
 import { MessageType, ChatType } from "@/app/components/types";
