@@ -102,9 +102,13 @@ const SavedChat = ({
         }}
       >
         <DropdownMenuTrigger asChild>
-          <button className={`p-1 mr-1 ${!hover ? "invisible" : ""}`}>
+          <div
+            className={`p-1 mr-1 hover:cursor-pointer ${
+              !hover ? "invisible" : ""
+            }`}
+          >
             <MoreHorizRoundedIcon className="text-gray-600" />
-          </button>
+          </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="min-w-16">
           <DropdownMenuGroup>
@@ -120,9 +124,12 @@ const SavedChat = ({
               </div>
             </DropdownMenuItem>
             <DropdownMenuItem className="cursor-pointer text-red-600 hover:text-red-600 focus:text-red-600">
-              <button onClick={onClickDelete} className="flex items-center">
+              <div
+                onClick={onClickDelete}
+                className="flex items-center hover:cursor-pointer"
+              >
                 <HiOutlineTrash className="mr-2" /> Delete
-              </button>
+              </div>
             </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
@@ -150,18 +157,19 @@ const SavedChat = ({
           />
 
           <DialogFooter>
-            <DialogClose>
+            <DialogClose asChild>
               <Button variant="secondary" onClick={() => setDialogOpen(false)}>
                 Cancel
               </Button>
             </DialogClose>
-            {renameInput && renameInput !== name ? (
-              <DialogClose>
-                <Button onClick={onClickSaveRename}>Save</Button>
-              </DialogClose>
-            ) : (
-              <Button disabled>Save</Button>
-            )}
+            <DialogClose asChild>
+              <Button
+                onClick={onClickSaveRename}
+                disabled={!(renameInput && renameInput !== name)}
+              >
+                Save
+              </Button>
+            </DialogClose>
           </DialogFooter>
         </DialogContent>
       </Dialog>

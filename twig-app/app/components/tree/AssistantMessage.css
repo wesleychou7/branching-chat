@@ -22,6 +22,10 @@ p {
   margin-bottom: 8px !important;
 }
 
+hr {
+  margin-bottom: 1.25em !important;
+}
+
 table {
   border-spacing: 0 !important;
   border-collapse: collapse !important;
