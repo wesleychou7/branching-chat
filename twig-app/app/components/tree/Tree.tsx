@@ -188,12 +188,9 @@ const getLayoutedElements = (nodes: any[], edges: any[]) => {
 
 interface Props {
   selectedChatID: string | null;
-  setSelectedChatID: React.Dispatch<React.SetStateAction<string | null>>;
   setChats?: React.Dispatch<React.SetStateAction<ChatType[]>>;
   messages: MessageType[];
   setMessages?: React.Dispatch<React.SetStateAction<MessageType[]>>;
-  newChat?: boolean;
-  setNewChat?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export default function Tree({

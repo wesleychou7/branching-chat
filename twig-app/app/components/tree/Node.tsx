@@ -55,13 +55,13 @@ export default function Node({
 }: any) {
   const model = useContext(ModelContext);
   const [prompt, setPrompt] = useState<string>(data.value);
+  const nodeRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [copyText, setCopyText] = useState<string>("Copy");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-  // Auto-focus textarea when a new node is added
-  if (data.label === "user" && prompt === "") textareaRef.current?.focus();
+  const [initialHeight, setInitialHeight] = useState<number>(0);
+  const [hideBottomHandle, setHideBottomHandle] = useState<boolean>(false);
 
   // redux for streaming response
   const dispatch = useDispatch();
@@ -86,6 +86,20 @@ export default function Node({
 
     return () => clearTimeout(timeoutRef.current);
   }, [prompt, id]);
+
+  // code to hide the bottom handle when textarea expands. 
+  useEffect(() => {
+    if (textareaRef.current) {
+      setInitialHeight(textareaRef.current.clientHeight);
+      setHideBottomHandle(false);
+    }
+  }, []);
+  function onHeightChange() {
+    if (textareaRef.current && initialHeight > 0) {
+      const currentHeight = textareaRef.current.clientHeight;
+      setHideBottomHandle(currentHeight > initialHeight);
+    }
+  }
 
   async function onClickAddPrompt() {
     // add message to message state
@@ -304,6 +318,7 @@ export default function Node({
     <>
       <div
         className={`${data.label === "user" ? "user-node" : ""} cursor-default`}
+        ref={nodeRef}
       >
         <div
           className={`${
@@ -339,8 +354,10 @@ export default function Node({
               onClick={(e) => {
                 e.stopPropagation(); // this is so that i can click directly into the textarea
               }}
+              onHeightChange={onHeightChange}
               ref={textareaRef}
               className="nopan bg-gray-50" // nopan so that highlighting in the textarea doesn't drag the tree view
+              autoFocus
               style={{
                 width: "100%",
                 border: "none",
@@ -427,7 +444,10 @@ export default function Node({
             type="source"
             position={Position.Bottom}
             isConnectable={false}
-            style={{ visibility: awaitingResponse ? "hidden" : "visible" }} // hide bottom handle when streaming response
+            style={{
+              visibility:
+                awaitingResponse || hideBottomHandle ? "hidden" : "visible",
+            }} // hide bottom handle when streaming response or when textarea is expanded
           />
         )}
       </div>

@@ -252,7 +252,6 @@ export default function Home() {
               () => (
                 <Tree
                   selectedChatID={selectedChatID}
-                  setSelectedChatID={setSelectedChatID}
                   setChats={setChats}
                   messages={messages}
                   setMessages={setMessages}
