@@ -300,10 +300,6 @@ export default function Tree({
         onEdgesChange={(changes) =>
           setEdges((eds) => applyEdgeChanges(changes, eds))
         }
-        // defaultViewport={viewportRef.current}
-        // onViewportChange={(viewport) => {
-        //   viewportRef.current = viewport;
-        // }}
         nodesDraggable={false}
         panOnScroll
         panOnScrollSpeed={1.5}
@@ -313,9 +309,10 @@ export default function Tree({
         fitViewOptions={{
           maxZoom: 1.1,
         }}
+        proOptions={{ hideAttribution: true }}
       >
         <Background />
-        {selectedChatID && <MiniMap />}
+        {selectedChatID && <MiniMap pannable zoomable />}
       </ReactFlow>
     </div>
   );

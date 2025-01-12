@@ -33,7 +33,8 @@ export default function Home() {
   const [chats, setChats] = useState<ChatType[]>([]);
   const [modelName, setModelName] = useState<string>("GPT-4o");
   const [modelAlias, setModelAlias] = useState<string>("chatgpt-4o-latest");
-
+  const [flowKey, setFlowKey] = useState(0); // to force ReactFlow to re-render (so fitView works when you change chats)
+  
   async function getMessages(chat_id: string) {
     const { data, error } = await supabase
       .from("messages")
@@ -152,6 +153,11 @@ export default function Home() {
     showBlankChat();
   }, []);
 
+  // whenever selectedChatID changes, increment flowKey to force ReactFlow to re-render
+  useEffect(() => {
+    setFlowKey((oldKey) => oldKey + 1);
+  }, [selectedChatID]);
+
   return (
     <ModelContext.Provider
       value={{
@@ -246,7 +252,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div className="h-full w-full z-0">
+        <div className="h-full w-full z-0" key={flowKey}>
           <ReactFlowProvider>
             {useMemo(
               () => (
