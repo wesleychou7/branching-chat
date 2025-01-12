@@ -7,7 +7,6 @@ import { ChatType, MessageType } from "@/app/components/types";
 import { PiSidebarSimpleBold } from "react-icons/pi";
 import MapsUgcRoundedIcon from "@mui/icons-material/MapsUgcRounded";
 import { IoIosArrowDown } from "react-icons/io";
-import { createNewChat } from "@/app/components/sidebar/SideBar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ReactFlowProvider } from "@xyflow/react";
+import { v4 as uuidv4 } from "uuid";
 
 type Model = {
   name: string;
@@ -64,6 +64,94 @@ export default function Home() {
     getChats();
   }, []);
 
+  async function createNewChat() {
+    // update database first
+    const newChatID = uuidv4();
+    const newMessageID = uuidv4();
+
+    const chatResponse = await supabase
+      .from("chats")
+      .insert({ id: newChatID, name: "(New Chat)" });
+
+    if (chatResponse.error) {
+      console.error(chatResponse.error);
+      return;
+    }
+
+    const messageResponse = await supabase.from("messages").insert({
+      id: newMessageID,
+      chat_id: newChatID,
+      parent_id: null,
+      role: "user",
+      content: "",
+    });
+
+    if (messageResponse.error) {
+      console.error(messageResponse.error);
+      return;
+    }
+
+    // update local state after database operations succeed
+    const newChat: ChatType = {
+      id: newChatID,
+      name: "(New Chat)",
+    };
+    setChats((prevChats) => [newChat, ...prevChats]);
+    setSelectedChatID(newChat.id);
+
+    const newMessage: MessageType = {
+      id: newMessageID,
+      parent_id: null,
+      role: "user",
+      content: "",
+    };
+    setMessages([newMessage]);
+  }
+
+  // initially show blank chat
+  useEffect(() => {
+    async function showBlankChat() {
+      const { data, error } = await supabase
+        .from("chats")
+        .select(
+          `
+            id,
+            name,
+            created_at,
+            messages (
+              id,
+              chat_id,
+              content
+            )
+          `
+        )
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (error) console.error(error);
+
+      if (data && data.length > 0) {
+        const [chat] = data;
+
+        // 3) Check if this top-most chat is named "(New Chat)"
+        //    and verify there's exactly 1 message with empty content.
+        if (
+          chat.name === "(New Chat)" &&
+          chat.messages &&
+          chat.messages.length === 1 &&
+          chat.messages[0].content === ""
+        ) {
+          // blank chat found
+          setSelectedChatID(data[0].id);
+        } else {
+          // no blank chat found, create a new one
+          createNewChat();
+        }
+      }
+    }
+    showBlankChat();
+  }, []);
+
   return (
     <ModelContext.Provider
       value={{
@@ -102,9 +190,7 @@ export default function Home() {
                 className={`hover:bg-gray-200 rounded-lg p-1.5 pt-[3px] transition ease-in-out ${
                   sidebarOpen ? "mr-4" : ""
                 }`}
-                onClick={() =>
-                  createNewChat(setChats, setSelectedChatID, setMessages)
-                }
+                onClick={() => createNewChat()}
               >
                 <MapsUgcRoundedIcon fontSize="medium" />
               </button>

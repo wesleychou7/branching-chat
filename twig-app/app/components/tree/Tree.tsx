@@ -1,9 +1,9 @@
 import {
   ReactFlow,
-  ReactFlowProvider,
   Background,
   applyEdgeChanges,
   applyNodeChanges,
+  MiniMap,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import Dagre from "@dagrejs/dagre";
@@ -205,7 +205,6 @@ export default function Tree({
   const [heightsCalculated, setHeightsCalculated] = useState<boolean>(false);
   const [nodes, setNodes] = useState<NodeType[]>([]);
   const [edges, setEdges] = useState<EdgeType[]>([]);
-  const viewportRef = useRef({ x: 0, y: 0, zoom: 1 });
   const refs = useRef<(HTMLDivElement | null)[]>([]); // refs for each node to get height
 
   const nodeTypes = {
@@ -294,34 +293,33 @@ export default function Tree({
           })}
         </div>
       )}
-      <ReactFlowProvider>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          onNodesChange={(changes) =>
-            setNodes((nds) => applyNodeChanges(changes, nds))
-          }
-          onEdgesChange={(changes) =>
-            setEdges((eds) => applyEdgeChanges(changes, eds))
-          }
-          defaultViewport={viewportRef.current}
-          onViewportChange={(viewport) => {
-            viewportRef.current = viewport;
-          }}
-          nodesDraggable={false}
-          panOnScroll
-          panOnScrollSpeed={1.5}
-          minZoom={0.2}
-          noPanClassName="nopan"
-          fitViewOptions={{
-            maxZoom: 1.1,
-          }}
-        >
-          <Background />
-        </ReactFlow>
-      </ReactFlowProvider>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={nodeTypes}
+        onNodesChange={(changes) =>
+          setNodes((nds) => applyNodeChanges(changes, nds))
+        }
+        onEdgesChange={(changes) =>
+          setEdges((eds) => applyEdgeChanges(changes, eds))
+        }
+        // defaultViewport={viewportRef.current}
+        // onViewportChange={(viewport) => {
+        //   viewportRef.current = viewport;
+        // }}
+        nodesDraggable={false}
+        panOnScroll
+        panOnScrollSpeed={1.5}
+        minZoom={0.2}
+        noPanClassName="nopan"
+        fitView
+        fitViewOptions={{
+          maxZoom: 1.1,
+        }}
+      >
+        <Background />
+        {selectedChatID && <MiniMap />}
+      </ReactFlow>
     </div>
   );
-  // }
 }

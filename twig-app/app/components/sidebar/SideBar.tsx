@@ -1,62 +1,12 @@
 import SavedChat from "./SavedChat";
 import { Dispatch, SetStateAction } from "react";
-import { MessageType, ChatType } from "@/app/components/types";
-import { v4 as uuidv4 } from "uuid";
-import supabase from "@/app/supabase";
+import { ChatType } from "@/app/components/types";
 
 interface Props {
   selectedChatID: string | null;
   setSelectedChatID: Dispatch<SetStateAction<string | null>>;
   chats: ChatType[];
   setChats: Dispatch<SetStateAction<ChatType[]>>;
-}
-
-export async function createNewChat(
-  setChats: Dispatch<SetStateAction<ChatType[]>>,
-  setSelectedChatID: Dispatch<SetStateAction<string | null>>,
-  setMessages: Dispatch<SetStateAction<MessageType[]>>
-) {
-  // update database first
-  const newChatID = uuidv4();
-  const newMessageID = uuidv4();
-
-  const chatResponse = await supabase
-    .from("chats")
-    .insert({ id: newChatID, name: "(New Chat)" });
-
-  if (chatResponse.error) {
-    console.error(chatResponse.error);
-    return;
-  }
-
-  const messageResponse = await supabase.from("messages").insert({
-    id: newMessageID,
-    chat_id: newChatID,
-    parent_id: null,
-    role: "user",
-    content: "",
-  });
-
-  if (messageResponse.error) {
-    console.error(messageResponse.error);
-    return;
-  }
-
-  // update local state after database operations succeed
-  const newChat: ChatType = {
-    id: newChatID,
-    name: "(New Chat)",
-  };
-  setChats((prevChats) => [newChat, ...prevChats]);
-  setSelectedChatID(newChat.id);
-
-  const newMessage: MessageType = {
-    id: newMessageID,
-    parent_id: null,
-    role: "user",
-    content: "",
-  };
-  setMessages([newMessage]);
 }
 
 export default function SideBar({

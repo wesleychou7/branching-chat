@@ -163,7 +163,7 @@ export default function Node({
         {
           role: "system",
           content:
-            "Summarize the conversation in 4 words or fewer, using title case. Be as concise as possible. Do not use any punctutaion.",
+            "Summarize the conversation in 4 words or fewer, using title case. Be as concise as possible. Do not use any punctutaion. Do not name the chat '(New Chat)'.",
         },
         {
           role: "user",
