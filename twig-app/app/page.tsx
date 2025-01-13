@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ReactFlowProvider } from "@xyflow/react";
 import { v4 as uuidv4 } from "uuid";
+import Profile from "@/app/components/profile/Profile";
 
 type Model = {
   name: string;
@@ -34,7 +35,7 @@ export default function Home() {
   const [modelName, setModelName] = useState<string>("GPT-4o");
   const [modelAlias, setModelAlias] = useState<string>("chatgpt-4o-latest");
   const [flowKey, setFlowKey] = useState(0); // to force ReactFlow to re-render (so fitView works when you change chats)
-  
+
   async function getMessages(chat_id: string) {
     const { data, error } = await supabase
       .from("messages")
@@ -166,6 +167,9 @@ export default function Home() {
       }}
     >
       <div className="w-screen h-screen">
+        <div className="fixed top-3 right-3 z-50">
+          <Profile />
+        </div>
         <div
           className={`fixed top-0 left-0 z-50 h-full w-2/12 duration-300 ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -178,6 +182,7 @@ export default function Home() {
             setChats={setChats}
           />
         </div>
+
         <div className="absolute top-0 left-0 z-50 text-gray-600">
           <div className="flex p-2">
             <button
