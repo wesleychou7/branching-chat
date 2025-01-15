@@ -4,7 +4,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { supabaseClient } from "@/supabaseClient";
+import { supabaseClient } from "@/lib/supabaseClient";
 import { Session } from "@supabase/supabase-js";
 import Image from "next/image";
 
@@ -32,7 +32,6 @@ export default function Profile({ session }: Props) {
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {/* <DropdownMenuSeparator /> */}
           <DropdownMenuItem className="cursor-pointer" onClick={signOut}>
             Logout
           </DropdownMenuItem>

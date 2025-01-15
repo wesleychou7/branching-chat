@@ -4,8 +4,6 @@ import { MessageType, ChatType } from "@/app/components/types";
 import TextareaAutosize from "react-textarea-autosize";
 import supabase from "@/app/supabase";
 import { v4 as uuidv4 } from "uuid";
-import OpenAI from "openai";
-import { generateResponse } from "@/lib/llms";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { ModelContext } from "@/app/page";
@@ -36,13 +34,6 @@ const translateLaTex = (val: string | null): string => {
     .replaceAll("\\[", "$$$") // display math
     .replaceAll("\\]", "$$$");
 };
-
-const openai = new OpenAI({
-  // apiKey: process.env.OPENAI_API_KEY,
-  apiKey:
-    "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",
-  dangerouslyAllowBrowser: true,
-});
 
 // props must be any type bc of dagre
 export default function Node({
@@ -87,7 +78,7 @@ export default function Node({
     return () => clearTimeout(timeoutRef.current);
   }, [prompt, id]);
 
-  // code to hide the bottom handle when textarea expands. 
+  // code to hide the bottom handle when textarea expands.
   useEffect(() => {
     if (textareaRef.current) {
       setInitialHeight(textareaRef.current.clientHeight);
@@ -171,25 +162,20 @@ export default function Node({
     userMessage: string,
     assistantResponse: string
   ): Promise<string> {
-    const chatName = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            "Summarize the conversation in 4 words or fewer, using title case. Be as concise as possible. Do not use any punctutaion. Do not name the chat '(New Chat)'.",
-        },
-        {
-          role: "user",
-          content: userMessage,
-        },
-        {
-          role: "assistant",
-          content: assistantResponse,
-        },
-      ],
+    const response = await fetch("/api/chat-name", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userMessage: userMessage,
+        assistantResponse: assistantResponse,
+      }),
     });
-    return chatName?.choices[0]?.message?.content || "A Conversation";
+    if (!response.ok) {
+      // fallback name
+      return "A Conversation";
+    }
+    const data = await response.json();
+    return data.name || "A Conversation";
   }
 
   async function onClickGenerateResponse() {
@@ -197,17 +183,16 @@ export default function Node({
     dispatch(setNodeId(responseId));
     dispatch(setAwaitingResponse(true));
     dispatch(clearStreamedMessage());
+
     const modelNameUsed = model.name;
     const modelAliasUsed = model.alias;
 
+    // Update the current user-node prompt in local state
     setMessages((prev: MessageType[]) =>
-      prev.map((msg: MessageType) => {
-        if (msg.id === id) return { ...msg, content: prompt };
-        return msg;
-      })
+      prev.map((msg) => (msg.id === id ? { ...msg, content: prompt } : msg))
     );
 
-    // add message to message state
+    // Add an empty assistant response in local state
     const newMessage: MessageType = {
       id: responseId,
       parent_id: id,
@@ -215,15 +200,14 @@ export default function Node({
       model_name: modelNameUsed,
       content: "",
     };
-    setMessages((prev: MessageType[]) => prev.concat(newMessage));
+    setMessages((prev: MessageType[]) => [...prev, newMessage]);
 
-    // get parent messages by traversing up the tree thru parents
-    const parentMessages: MessageType[] = (() => {
+    // Retrieve *all* messages by traversing up this node's ancestors
+    const parentMessages: MessageType[] = (function () {
       const result: MessageType[] = [];
       let currentId: string | null = id;
 
       while (currentId) {
-        // If we're at the current node ID, use the latest prompt
         const message =
           currentId === id
             ? {
@@ -231,42 +215,58 @@ export default function Node({
                 content: prompt,
               }
             : messages.find((msg: MessageType) => msg.id === currentId);
-
         if (!message) break;
+
         result.push(message);
         currentId = message.parent_id;
       }
-
       return result.reverse();
     })();
 
+    // STREAMING from /api/llm
     let accumulatedContent = "";
     try {
-      for await (const token of generateResponse(
-        modelAliasUsed,
-        parentMessages
-      )) {
-        accumulatedContent += token;
-        dispatch(appendStreamedMessage(token));
+      const res = await fetch("/api/llm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          modelAlias: modelAliasUsed,
+          messages: parentMessages,
+        }),
+      });
+
+      if (!res.body) {
+        throw new Error("No response body from /api/llm.");
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let done = false;
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (value) {
+          const chunkValue = decoder.decode(value);
+          accumulatedContent += chunkValue;
+          // Dispatch streaming tokens to Redux
+          dispatch(appendStreamedMessage(chunkValue));
+        }
       }
     } catch (err) {
       console.error("Error streaming from LLM:", err);
     }
 
+    // Once complete, store the final accumulated content in local state
     setMessages((prev: MessageType[]) => {
-      const newMessages = [...prev];
-      const index = newMessages.findIndex(
-        (msg: MessageType) => msg.id === responseId
+      return prev.map((msg) =>
+        msg.id === responseId ? { ...msg, content: accumulatedContent } : msg
       );
-      if (index !== -1) {
-        newMessages[index].content = accumulatedContent;
-      }
-      return newMessages;
     });
 
     dispatch(setAwaitingResponse(false));
 
-    // add prompt message to database
+    // Update the user prompt in the DB
     const response1 = await supabase
       .from("messages")
       .update({ content: prompt })
@@ -274,28 +274,27 @@ export default function Node({
 
     if (response1.error) console.error(response1.error);
 
+    // If this is the first or only message, generate & store a chat name
     if (messages.length <= 1) {
       const chatName = await generateChatName(prompt, accumulatedContent);
       setChats((prev: ChatType[]) => {
         const newChats = [...prev];
-        const index = newChats.findIndex(
-          (chat: ChatType) => chat.id === selectedChatID
-        );
+        const index = newChats.findIndex((chat) => chat.id === selectedChatID);
         if (index !== -1) {
           newChats[index].name = chatName;
         }
         return newChats;
       });
 
-      const response = await supabase
+      const responseName = await supabase
         .from("chats")
         .update({ name: chatName })
         .eq("id", selectedChatID);
 
-      if (response.error) console.error(response.error);
+      if (responseName.error) console.error(responseName.error);
     }
 
-    // add response to database
+    // Insert the assistant's final content into the DB
     const response2 = await supabase.from("messages").insert({
       id: responseId,
       chat_id: selectedChatID,

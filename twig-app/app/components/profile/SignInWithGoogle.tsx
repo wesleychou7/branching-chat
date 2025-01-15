@@ -1,5 +1,5 @@
 import "./SignInWithGoogle.css";
-import { supabaseClient } from "@/supabaseClient";
+import { supabaseClient } from "@/lib/supabaseClient";
 
 export default function SignInWithGoogle() {
   async function signIn() {

@@ -18,21 +18,21 @@ import { ReactFlowProvider } from "@xyflow/react";
 import { v4 as uuidv4 } from "uuid";
 import Profile from "@/app/components/profile/Profile";
 import { Session } from "@supabase/supabase-js";
-import { supabaseClient } from "@/supabaseClient";
-import Image from "next/image";
-// import SignInWithGoogle from "@/public/web_light_rd_SI@1x.png";
+import { supabaseClient } from "@/lib/supabaseClient";
 import SignInWithGoogle from "@/app/components/profile/SignInWithGoogle";
 
 type Model = {
   name: string;
   alias: string;
 };
+
 export const ModelContext = createContext<Model>({
   name: "",
   alias: "",
 });
 
 export default function Home() {
+  const [session, setSession] = useState<Session | null>(null); // if user is signed in or not
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [selectedChatID, setSelectedChatID] = useState<string | null>(null);
   const [messages, setMessages] = useState<MessageType[]>([]);
@@ -40,6 +40,21 @@ export default function Home() {
   const [modelName, setModelName] = useState<string>("GPT-4o");
   const [modelAlias, setModelAlias] = useState<string>("chatgpt-4o-latest");
   const [flowKey, setFlowKey] = useState(0); // to force ReactFlow to re-render (so fitView works when you change chats)
+  
+  // check if user is signed in
+  useEffect(() => {
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabaseClient.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   async function getMessages(chat_id: string) {
     const { data, error } = await supabase
@@ -163,21 +178,6 @@ export default function Home() {
   useEffect(() => {
     setFlowKey((oldKey) => oldKey + 1);
   }, [selectedChatID]);
-
-  const [session, setSession] = useState<Session | null>(null);
-  useEffect(() => {
-    supabaseClient.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const {
-      data: { subscription },
-    } = supabaseClient.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   return (
     <ModelContext.Provider
