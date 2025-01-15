@@ -19,21 +19,11 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import remarkBreaks from "remark-breaks";
 import rehypeKatex from "rehype-katex";
+import { translateLaTex } from "@/lib/utils";
 import "katex/dist/katex.min.css";
 import "./AssistantMessage.css";
 import CodeHighlighter from "./CodeHighlighter";
 import DeleteModal from "./DeleteModal";
-
-const translateLaTex = (val: string | null): string => {
-  if (!val) return "";
-  if (val.indexOf("\\") == -1) return val;
-
-  return val
-    .replaceAll("\\(", "$$") // inline math
-    .replaceAll("\\)", "$$")
-    .replaceAll("\\[", "$$$") // display math
-    .replaceAll("\\]", "$$$");
-};
 
 // props must be any type bc of dagre
 export default function Node({

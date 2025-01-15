@@ -1,5 +1,4 @@
 // app/api/llm/route.ts
-
 import { NextRequest } from "next/server";
 import { MessageType } from "@/app/components/types";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
@@ -9,12 +8,10 @@ import Anthropic from "@anthropic-ai/sdk";
 
 export const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  // dangerouslyAllowBrowser: true,
 });
 
 export const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
-  // dangerouslyAllowBrowser: true
 });
 
 // Optional: run on the edge for faster response times (if you're on Vercel, etc.)

@@ -1,6 +1,5 @@
 // app/api/chat-name/route.ts
 import { NextRequest } from "next/server";
-// import { generateChatName } from "@/lib/llms";
 import { openai } from "@/app/api/llm/route";
 
 export async function generateChatName(
