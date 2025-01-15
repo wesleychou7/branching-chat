@@ -17,6 +17,11 @@ import {
 import { ReactFlowProvider } from "@xyflow/react";
 import { v4 as uuidv4 } from "uuid";
 import Profile from "@/app/components/profile/Profile";
+import { Session } from "@supabase/supabase-js";
+import { supabaseClient } from "@/supabaseClient";
+import Image from "next/image";
+// import SignInWithGoogle from "@/public/web_light_rd_SI@1x.png";
+import SignInWithGoogle from "@/app/components/profile/SignInWithGoogle";
 
 type Model = {
   name: string;
@@ -159,6 +164,21 @@ export default function Home() {
     setFlowKey((oldKey) => oldKey + 1);
   }, [selectedChatID]);
 
+  const [session, setSession] = useState<Session | null>(null);
+  useEffect(() => {
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabaseClient.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
     <ModelContext.Provider
       value={{
@@ -167,8 +187,9 @@ export default function Home() {
       }}
     >
       <div className="w-screen h-screen">
-        <div className="fixed top-3 right-3 z-50">
-          <Profile />
+        <div className="fixed top-2 right-3 z-50">
+          {session && <Profile session={session} />}
+          {!session && <SignInWithGoogle />}
         </div>
         <div
           className={`fixed top-0 left-0 z-50 h-full w-2/12 duration-300 ${

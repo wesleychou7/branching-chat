@@ -1,15 +1,43 @@
-import { BiSolidUserCircle } from "react-icons/bi";
-import { useRouter } from "next/navigation";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { supabaseClient } from "@/supabaseClient";
+import { Session } from "@supabase/supabase-js";
+import Image from "next/image";
 
-export default function Profile() {
-  const router = useRouter();
+interface Props {
+  session: Session | null;
+}
+
+export default function Profile({ session }: Props) {
+  async function signOut() {
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) console.error(error);
+  }
 
   return (
     <div>
-      <div className="flex items-center gap-3">
-        <button>Sign Up</button>
-        <button onClick={() => router.push("/login")}>Login</button>
-      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger className="outline-none">
+          <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gray-200 cursor-pointer">
+            <Image
+              src={session?.user.user_metadata.avatar_url}
+              alt="Profile"
+              width={32}
+              height={32}
+            />
+          </div>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {/* <DropdownMenuSeparator /> */}
+          <DropdownMenuItem className="cursor-pointer" onClick={signOut}>
+            Logout
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
