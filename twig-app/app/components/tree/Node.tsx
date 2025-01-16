@@ -256,6 +256,15 @@ export default function Node({
 
     dispatch(setAwaitingResponse(false));
 
+    // Add a new blank user message after response is complete
+    const newUserMessage: MessageType = {
+      id: uuidv4(),
+      parent_id: responseId,
+      role: "user",
+      content: "",
+    };
+    setMessages((prev: MessageType[]) => [...prev, newUserMessage]);
+
     // Update the user prompt in the DB
     const response1 = await supabase
       .from("messages")
@@ -295,6 +304,17 @@ export default function Node({
     });
 
     if (response2.error) console.error(response2.error);
+
+    // Insert the new blank user message into the DB
+    const response3 = await supabase.from("messages").insert({
+      id: newUserMessage.id,
+      chat_id: selectedChatID,
+      parent_id: responseId,
+      role: "user",
+      content: "",
+    });
+
+    if (response3.error) console.error(response3.error);
   }
 
   function onClickCopy() {
