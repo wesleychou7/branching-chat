@@ -60,6 +60,8 @@ export default function Home() {
         setSession(session);
         if (session) {
           setUserID(session.user.id);
+        } else {
+          setUserID(null);
         }
       }
     });
@@ -69,7 +71,6 @@ export default function Home() {
       data: { subscription },
     } = supabaseClient.auth.onAuthStateChange((_event, session) => {
       if (mounted) {
-        // Only update if the session actually changed
         setSession((prevSession) => {
           if (JSON.stringify(prevSession) !== JSON.stringify(session)) {
             return session;
@@ -79,6 +80,8 @@ export default function Home() {
 
         if (session) {
           setUserID(session.user.id);
+        } else {
+          setUserID(null);
         }
       }
     });
@@ -99,6 +102,7 @@ export default function Home() {
   }, [session]);
 
   async function getMessages(chat_id: string) {
+    if (!session) return; // prevent operation when not authenticated
     const { data, error } = await supabase
       .from("messages")
       .select()
@@ -110,6 +114,7 @@ export default function Home() {
   }
 
   async function getChats() {
+    if (!session) return; // prevent operation when not authenticated
     const { data, error } = await supabase
       .from("chats")
       .select("id, name")
@@ -131,6 +136,7 @@ export default function Home() {
   }, [session]);
 
   async function showBlankChat() {
+    if (!session) return; // prevent operation when not authenticated
     const { data, error } = await supabase
       .from("chats")
       .select(
@@ -172,6 +178,7 @@ export default function Home() {
   }
 
   async function createNewChat() {
+    if (!session) return; // prevent operation when not authenticated
     // update database first
     const newChatID = uuidv4();
     const newMessageID = uuidv4();
@@ -243,7 +250,7 @@ export default function Home() {
             {!session && <SignInWithGoogle />}
           </div>
           <div
-            className={`fixed top-0 left-0 z-50 h-full w-2/12 duration-300 ${
+            className={`fixed top-0 left-0 z-50 h-full w-[252px] duration-300 ${
               sidebarOpen ? "translate-x-0" : "-translate-x-full"
             }`}
           >

@@ -361,11 +361,22 @@ export default function Node({
           {data.label === "user" && (
             <TextareaAutosize
               value={prompt}
+              spellCheck={false}
               placeholder={
                 data.parent_id ? "Type your message..." : "Ask anything..."
               }
               onChange={(e) => {
                 setPrompt(e.target.value);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  if (!e.shiftKey) {
+                    e.preventDefault();
+                    if (prompt.trim()) {
+                      onClickGenerateResponse();
+                    }
+                  }
+                }
               }}
               onClick={(e) => {
                 e.stopPropagation(); // this is so that i can click directly into the textarea
@@ -422,7 +433,7 @@ export default function Node({
                 <button
                   onClick={onClickGenerateResponse}
                   className="hover:text-gray-600 transition ease-in-out disabled:hover:text-gray-400 disabled:cursor-not-allowed"
-                  disabled={!prompt}
+                  disabled={!prompt.trim()}
                 >
                   Generate response
                 </button>

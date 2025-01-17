@@ -317,10 +317,10 @@ export default function Tree({
       >
         <Background />
         {selectedChatID && (
-            <div className="fixed bottom-0 right-0">
-              <MiniMap pannable zoomable />
-            </div>
-          )}
+          <div className="fixed bottom-0 right-0 z-50">
+            <MiniMap pannable zoomable />
+          </div>
+        )}
       </ReactFlow>
     </div>
   );

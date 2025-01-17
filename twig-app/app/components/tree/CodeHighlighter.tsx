@@ -35,7 +35,8 @@ const TextCode = ({ code, className }: { code: string; className: string }) => {
 const CodeHighlighter = ({ language, code }: Props) => {
   const [copyButtonClicked, setCopyButtonClicked] = useState<boolean>(false);
 
-  const onCopyClick = () => {
+  const onCopyClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setCopyButtonClicked(true);
     if (code) navigator.clipboard.writeText(code);
     // show checkmark for 2 seconds
