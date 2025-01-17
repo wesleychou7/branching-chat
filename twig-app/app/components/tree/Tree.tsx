@@ -233,7 +233,7 @@ export default function Tree({
           value: message.content || "",
           height: 1,
         },
-        width: 750,
+        width: 800,
         height: 1,
         message: message,
       });
@@ -272,7 +272,7 @@ export default function Tree({
   }, [heightsCalculated, nodes, edges]);
 
   return (
-    <div className="w-full h-full">
+    <div className="relative w-full h-full">
       {!heightsCalculated && (
         <div style={{ visibility: "hidden" }}>
           {nodes.map((node, index) => {
@@ -310,9 +310,17 @@ export default function Tree({
           maxZoom: 1.1,
         }}
         proOptions={{ hideAttribution: true }}
+        translateExtent={[
+          [Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY],
+          [Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY],
+        ]}
       >
         <Background />
-        {selectedChatID && <MiniMap pannable zoomable />}
+        {selectedChatID && (
+            <div className="fixed bottom-0 right-0">
+              <MiniMap pannable zoomable />
+            </div>
+          )}
       </ReactFlow>
     </div>
   );

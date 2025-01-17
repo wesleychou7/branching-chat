@@ -254,7 +254,7 @@ export default function Home() {
               setChats={setChats}
             />
           </div>
-          <div className="absolute top-0 left-0 z-50 text-gray-600">
+          <div className="fixed top-0 left-0 z-50 text-gray-600">
             <div className="flex p-2">
               {session && ( // don't show sidebar button if user is not signed in
                 <button

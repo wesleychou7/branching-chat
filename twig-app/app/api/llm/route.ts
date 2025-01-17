@@ -14,6 +14,8 @@ export const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+const SYSTEM_PROMPT = "You are a helpful assistant.";
+
 // Optional: run on the edge for faster response times (if you're on Vercel, etc.)
 export const runtime = "edge";
 
@@ -31,7 +33,7 @@ export async function* generateResponse(
         case "chatgpt-4o-latest":
         case "gpt-4o-mini":
             messages = [
-                { role: "system", content: "You are a helpful assistant." } as MessageType,
+                { role: "system", content: SYSTEM_PROMPT } as MessageType,
                 ...messages,
             ];
 
@@ -54,7 +56,7 @@ export async function* generateResponse(
                 model: modelAlias,
                 messages: mapToAnthropicMessages(messages) as MessageParam[],
                 max_tokens: 8192,
-                system: "You are a helpful assistant.",
+                system: SYSTEM_PROMPT,
             });
 
             for await (const chunk of completion) {

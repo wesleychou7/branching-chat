@@ -82,6 +82,13 @@ export default function Node({
     }
   }
 
+  // focus textarea and prevent scroll
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.focus({ preventScroll: true });
+    }
+  }, []);
+
   async function onClickAddPrompt() {
     // add message to message state
     const newMessage: MessageType = {
@@ -335,7 +342,7 @@ export default function Node({
           } border 
           ${
             data.label === "user" ? "border-gray-400" : "border-gray-300"
-          } rounded-lg w-[750px] p-2`}
+          } rounded-lg w-[800px] p-2`}
         >
           <div className="flex justify-between text-xs text-gray-400 mb-1">
             <div>{data.label === "user" ? "you" : data.model_name}</div>
@@ -366,7 +373,6 @@ export default function Node({
               onHeightChange={onHeightChange}
               ref={textareaRef}
               className="nopan bg-gray-50" // nopan so that highlighting in the textarea doesn't drag the tree view
-              autoFocus
               style={{
                 width: "100%",
                 border: "none",

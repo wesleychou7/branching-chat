@@ -12,7 +12,7 @@ export async function generateChatName(
         {
           role: "system",
           content:
-            "Summarize the conversation in 4 words or fewer, using title case. Be as concise as possible. Do not use any punctutaion. Do not name the chat '(New Chat)'.",
+            "Summarize the conversation in 4 words or fewer, using title case. Be as concise as possible. Do not bold any words. Do not use any punctutaion. Do not name the chat '(New Chat)'.",
         },
         {
           role: "user",
