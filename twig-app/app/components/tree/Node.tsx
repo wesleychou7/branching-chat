@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { ModelContext } from "@/app/page";
+import { UserContext } from "@/app/page";
 import {
   setNodeId,
   appendStreamedMessage,
@@ -35,6 +36,7 @@ export default function Node({
   setMessages,
 }: any) {
   const model = useContext(ModelContext);
+  const userID = useContext(UserContext).id;
   const [prompt, setPrompt] = useState<string>(data.value);
   const nodeRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout>();
@@ -271,6 +273,9 @@ export default function Node({
       content: "",
     };
     setMessages((prev: MessageType[]) => [...prev, newUserMessage]);
+
+    // do not do database updates if user is not signed in
+    if (!userID) return;
 
     // Update the user prompt in the DB
     const response1 = await supabase

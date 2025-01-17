@@ -7,7 +7,8 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import Dagre from "@dagrejs/dagre";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
+import { UserContext } from "@/app/page";
 import {
   MessageType,
   NodeType,
@@ -199,6 +200,7 @@ export default function Tree({
   messages,
   setMessages,
 }: Props) {
+  const userID = useContext(UserContext).id;
   const [heightsCalculated, setHeightsCalculated] = useState<boolean>(false);
   const [nodes, setNodes] = useState<NodeType[]>([]);
   const [edges, setEdges] = useState<EdgeType[]>([]);
@@ -249,7 +251,7 @@ export default function Tree({
     setEdges(newEdges);
     setHeightsCalculated(false);
   }, [messages]);
-  
+
   useEffect(() => {
     if (!heightsCalculated) {
       const newNodes: NodeType[] = [];
@@ -266,9 +268,14 @@ export default function Tree({
           }
         }
       }
-      if (newNodes.length > 0) {
+
+      if (!userID && newNodes.length > 0) { // weird thing i have to do - look into this in the future
+        setNodes(customLayout(newNodes, edges));
+      } 
+      else if (userID) {
         setNodes(customLayout(newNodes, edges));
       }
+
       setHeightsCalculated(true);
     }
   }, [heightsCalculated, nodes, edges]);
@@ -318,11 +325,9 @@ export default function Tree({
         ]}
       >
         <Background />
-        {selectedChatID && (
-          <div className="fixed bottom-0 right-0 z-50">
-            <MiniMap pannable zoomable />
-          </div>
-        )}
+        <div className="fixed bottom-0 right-0 z-50">
+          <MiniMap pannable zoomable />
+        </div>
       </ReactFlow>
     </div>
   );

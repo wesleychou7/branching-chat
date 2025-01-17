@@ -13,6 +13,8 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuShortcut,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { ReactFlowProvider } from "@xyflow/react";
 import { v4 as uuidv4 } from "uuid";
@@ -20,6 +22,7 @@ import Profile from "@/app/components/profile/Profile";
 import { Session } from "@supabase/supabase-js";
 import { supabaseClient } from "@/lib/supabaseClient";
 import SignInWithGoogle from "@/app/components/profile/SignInWithGoogle";
+import Tooltip from "@mui/joy/Tooltip";
 
 type Model = {
   name: string;
@@ -63,6 +66,7 @@ export default function Home() {
           setUserID(session.user.id);
         } else {
           setUserID(null);
+          setSidebarOpen(false);
         }
         setIsLoading(false);
       }
@@ -84,6 +88,7 @@ export default function Home() {
           setUserID(session.user.id);
         } else {
           setUserID(null);
+          setSidebarOpen(false);
         }
       }
     });
@@ -127,7 +132,9 @@ export default function Home() {
   }
 
   useEffect(() => {
+    if (isLoading) return;
     if (!session) {
+      console.log("No session");
       setMessages([
         {
           id: uuidv4(),
@@ -140,9 +147,10 @@ export default function Home() {
       if (selectedChatID) getMessages(selectedChatID);
       else setMessages([]);
     }
-  }, [session, selectedChatID]);
+  }, [session, selectedChatID, isLoading]);
 
   useEffect(() => {
+    if (isLoading) return;
     if (session) getChats();
     else setChats([]);
   }, [session]);
@@ -190,7 +198,19 @@ export default function Home() {
   }
 
   async function createNewChat() {
-    if (!session) return; // prevent operation when not authenticated
+    if (!session) {
+      setMessages([
+        {
+          id: uuidv4(),
+          parent_id: null,
+          role: "user",
+          content: "",
+        },
+      ]);
+      setFlowKey((oldKey) => oldKey + 1);
+      return;
+    }
+
     // update database first
     const newChatID = uuidv4();
     const newMessageID = uuidv4();
@@ -261,7 +281,13 @@ export default function Home() {
             <>
               <div className="fixed top-2 right-3 z-50">
                 {session && <Profile session={session} />}
-                {!session && <SignInWithGoogle />}
+                {!session && (
+                  <Tooltip title="Sign in to save chat history" variant="solid" arrow>
+                    <div>
+                      <SignInWithGoogle />
+                    </div>
+                  </Tooltip>
+                )}
               </div>
               <div
                 className={`fixed top-0 left-0 z-50 h-full w-[252px] duration-300 ${
@@ -290,14 +316,16 @@ export default function Home() {
                       sidebarOpen ? "translate-x-40" : "-translate-x-0"
                     }`}
                   >
-                    <button
-                      className={`hover:bg-gray-200 rounded-lg p-1.5 pt-[3px] transition ease-in-out ${
-                        sidebarOpen ? "mr-4" : ""
-                      }`}
-                      onClick={() => createNewChat()}
-                    >
-                      <MapsUgcRoundedIcon fontSize="medium" />
-                    </button>
+                    <Tooltip title="New chat" variant="solid" arrow>
+                      <button
+                        className={`hover:bg-gray-200 rounded-lg p-1.5 pt-[3px] transition ease-in-out ${
+                          sidebarOpen ? "mr-4" : ""
+                        }`}
+                        onClick={() => createNewChat()}
+                      >
+                        <MapsUgcRoundedIcon fontSize="medium" />
+                      </button>
+                    </Tooltip>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <div className="hover:bg-gray-200 rounded-lg px-2 h-full flex items-center gap-1 transition ease-in-out cursor-pointer">
@@ -305,7 +333,7 @@ export default function Home() {
                           <IoIosArrowDown />
                         </div>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-56">
+                      <DropdownMenuContent align="start" className="w-60">
                         <DropdownMenuLabel className="font-normal text-gray-400 text-xs">
                           Select a model
                         </DropdownMenuLabel>
@@ -315,8 +343,21 @@ export default function Home() {
                             setModelName("GPT-4o");
                             setModelAlias("chatgpt-4o-latest");
                           }}
+                          disabled
                         >
                           GPT-4o
+                          <DropdownMenuShortcut>Plus</DropdownMenuShortcut>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setModelName("Claude 3.5 Sonnet");
+                            setModelAlias("claude-3-5-sonnet-latest");
+                          }}
+                          disabled
+                        >
+                          Claude 3.5 Sonnet
+                          <DropdownMenuShortcut>Plus</DropdownMenuShortcut>
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="cursor-pointer"
@@ -330,20 +371,18 @@ export default function Home() {
                         <DropdownMenuItem
                           className="cursor-pointer"
                           onClick={() => {
-                            setModelName("Claude 3.5 Sonnet");
-                            setModelAlias("claude-3-5-sonnet-latest");
-                          }}
-                        >
-                          Claude 3.5 Sonnet
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="cursor-pointer"
-                          onClick={() => {
                             setModelName("Claude 3.5 Haiku");
                             setModelAlias("claude-3-5-haiku-latest");
                           }}
                         >
                           Claude 3.5 Haiku
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="cursor-pointer bg-gray-100">
+                          <div>
+                            <div>Unlock all models with Plus</div>
+                            <div>$15/month</div>
+                          </div>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
