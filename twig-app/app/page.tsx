@@ -40,6 +40,7 @@ export const UserContext = createContext<User>({
 });
 
 export default function Home() {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [session, setSession] = useState<Session | null>(null); // if user is signed in or not
   const [userID, setUserID] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
@@ -63,6 +64,7 @@ export default function Home() {
         } else {
           setUserID(null);
         }
+        setIsLoading(false);
       }
     });
 
@@ -102,7 +104,6 @@ export default function Home() {
   }, [session]);
 
   async function getMessages(chat_id: string) {
-    if (!session) return; // prevent operation when not authenticated
     const { data, error } = await supabase
       .from("messages")
       .select()
@@ -126,9 +127,20 @@ export default function Home() {
   }
 
   useEffect(() => {
-    if (selectedChatID) getMessages(selectedChatID);
-    else setMessages([]);
-  }, [selectedChatID]);
+    if (!session) {
+      setMessages([
+        {
+          id: uuidv4(),
+          parent_id: null,
+          role: "user",
+          content: "",
+        },
+      ]);
+    } else {
+      if (selectedChatID) getMessages(selectedChatID);
+      else setMessages([]);
+    }
+  }, [session, selectedChatID]);
 
   useEffect(() => {
     if (session) getChats();
@@ -245,97 +257,101 @@ export default function Home() {
         }}
       >
         <div className="w-screen h-screen">
-          <div className="fixed top-2 right-3 z-50">
-            {session && <Profile session={session} />}
-            {!session && <SignInWithGoogle />}
-          </div>
-          <div
-            className={`fixed top-0 left-0 z-50 h-full w-[252px] duration-300 ${
-              sidebarOpen ? "translate-x-0" : "-translate-x-full"
-            }`}
-          >
-            <SideBar
-              selectedChatID={selectedChatID}
-              setSelectedChatID={setSelectedChatID}
-              chats={chats}
-              setChats={setChats}
-            />
-          </div>
-          <div className="fixed top-0 left-0 z-50 text-gray-600">
-            <div className="flex p-2">
-              {session && ( // don't show sidebar button if user is not signed in
-                <button
-                  onClick={() => setSidebarOpen(!sidebarOpen)}
-                  className="hover:bg-gray-200 rounded-lg p-1.5 mr-1 transition ease-in-out"
-                >
-                  <PiSidebarSimpleBold size={25} />
-                </button>
-              )}
+          {!isLoading && (
+            <>
+              <div className="fixed top-2 right-3 z-50">
+                {session && <Profile session={session} />}
+                {!session && <SignInWithGoogle />}
+              </div>
               <div
-                className={`flex items-center duration-300 ${
-                  sidebarOpen ? "translate-x-40" : "-translate-x-0"
+                className={`fixed top-0 left-0 z-50 h-full w-[252px] duration-300 ${
+                  sidebarOpen ? "translate-x-0" : "-translate-x-full"
                 }`}
               >
-                <button
-                  className={`hover:bg-gray-200 rounded-lg p-1.5 pt-[3px] transition ease-in-out ${
-                    sidebarOpen ? "mr-4" : ""
-                  }`}
-                  onClick={() => createNewChat()}
-                >
-                  <MapsUgcRoundedIcon fontSize="medium" />
-                </button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <div className="hover:bg-gray-200 rounded-lg px-2 h-full flex items-center gap-1 transition ease-in-out cursor-pointer">
-                      <div className="font-medium">{modelName}</div>
-                      <IoIosArrowDown />
-                    </div>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-56">
-                    <DropdownMenuLabel className="font-normal text-gray-400 text-xs">
-                      Select a model
-                    </DropdownMenuLabel>
-                    <DropdownMenuItem
-                      className="cursor-pointer"
-                      onClick={() => {
-                        setModelName("GPT-4o");
-                        setModelAlias("chatgpt-4o-latest");
-                      }}
-                    >
-                      GPT-4o
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="cursor-pointer"
-                      onClick={() => {
-                        setModelName("GPT-4o mini");
-                        setModelAlias("gpt-4o-mini");
-                      }}
-                    >
-                      GPT-4o mini
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="cursor-pointer"
-                      onClick={() => {
-                        setModelName("Claude 3.5 Sonnet");
-                        setModelAlias("claude-3-5-sonnet-latest");
-                      }}
-                    >
-                      Claude 3.5 Sonnet
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="cursor-pointer"
-                      onClick={() => {
-                        setModelName("Claude 3.5 Haiku");
-                        setModelAlias("claude-3-5-haiku-latest");
-                      }}
-                    >
-                      Claude 3.5 Haiku
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <SideBar
+                  selectedChatID={selectedChatID}
+                  setSelectedChatID={setSelectedChatID}
+                  chats={chats}
+                  setChats={setChats}
+                />
               </div>
-            </div>
-          </div>
+              <div className="fixed top-0 left-0 z-50 text-gray-600">
+                <div className="flex p-2">
+                  {session && ( // don't show sidebar button if user is not signed in
+                    <button
+                      onClick={() => setSidebarOpen(!sidebarOpen)}
+                      className="hover:bg-gray-200 rounded-lg p-1.5 mr-1 transition ease-in-out"
+                    >
+                      <PiSidebarSimpleBold size={25} />
+                    </button>
+                  )}
+                  <div
+                    className={`flex items-center duration-300 ${
+                      sidebarOpen ? "translate-x-40" : "-translate-x-0"
+                    }`}
+                  >
+                    <button
+                      className={`hover:bg-gray-200 rounded-lg p-1.5 pt-[3px] transition ease-in-out ${
+                        sidebarOpen ? "mr-4" : ""
+                      }`}
+                      onClick={() => createNewChat()}
+                    >
+                      <MapsUgcRoundedIcon fontSize="medium" />
+                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <div className="hover:bg-gray-200 rounded-lg px-2 h-full flex items-center gap-1 transition ease-in-out cursor-pointer">
+                          <div className="font-medium">{modelName}</div>
+                          <IoIosArrowDown />
+                        </div>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-56">
+                        <DropdownMenuLabel className="font-normal text-gray-400 text-xs">
+                          Select a model
+                        </DropdownMenuLabel>
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setModelName("GPT-4o");
+                            setModelAlias("chatgpt-4o-latest");
+                          }}
+                        >
+                          GPT-4o
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setModelName("GPT-4o mini");
+                            setModelAlias("gpt-4o-mini");
+                          }}
+                        >
+                          GPT-4o mini
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setModelName("Claude 3.5 Sonnet");
+                            setModelAlias("claude-3-5-sonnet-latest");
+                          }}
+                        >
+                          Claude 3.5 Sonnet
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setModelName("Claude 3.5 Haiku");
+                            setModelAlias("claude-3-5-haiku-latest");
+                          }}
+                        >
+                          Claude 3.5 Haiku
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
           <div className="h-full w-full z-0" key={flowKey}>
             <ReactFlowProvider>
               {useMemo(

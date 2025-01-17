@@ -249,7 +249,7 @@ export default function Tree({
     setEdges(newEdges);
     setHeightsCalculated(false);
   }, [messages]);
-
+  
   useEffect(() => {
     if (!heightsCalculated) {
       const newNodes: NodeType[] = [];
@@ -266,7 +266,9 @@ export default function Tree({
           }
         }
       }
-      setNodes(customLayout(newNodes, edges));
+      if (newNodes.length > 0) {
+        setNodes(customLayout(newNodes, edges));
+      }
       setHeightsCalculated(true);
     }
   }, [heightsCalculated, nodes, edges]);
