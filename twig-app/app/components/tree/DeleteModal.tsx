@@ -46,7 +46,7 @@ export default function DeleteModal({
                   </DialogTitle>
                   <div className="mt-2">
                     <p className="text-sm text-gray-500">
-                      Deleting this message will also delete its follow-up
+                      Deleting this message will also delete all its follow-up
                       messages. Do you wish to proceed?
                     </p>
                   </div>
