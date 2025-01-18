@@ -26,9 +26,8 @@ import "./AssistantMessage.css";
 import CodeHighlighter from "./CodeHighlighter";
 import DeleteModal from "./DeleteModal";
 
-// props must be any type bc of dagre
 export default function Node({
-  id, // THIS IS A STRING
+  id,
   data,
   selectedChatID,
   setChats,
@@ -38,6 +37,7 @@ export default function Node({
   const model = useContext(ModelContext);
   const userID = useContext(UserContext).id;
   const [prompt, setPrompt] = useState<string>(data.value);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
   const nodeRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -56,19 +56,58 @@ export default function Node({
     state.message.nodeId === id ? state.message.streamedMessage : ""
   );
 
-  // update message in database after user stops typing for 3 seconds
+  // useEffect(() => {
+  //   // update messages state
+  //   if (data.value !== prompt) {
+  //     setMessages((prev: MessageType[]) =>
+  //       prev.map((msg) => (msg.id === id ? { ...msg, content: prompt } : msg))
+  //     );
+  //   }
+
+  //   // update message in database after user stops typing for 1 seconds
+  //   timeoutRef.current = setTimeout(async () => {
+  //     const response = await supabase
+  //       .from("messages")
+  //       .update({ content: prompt })
+  //       .eq("id", id);
+
+  //     if (response.error) console.error(response.error);
+  //   }, 1000);
+
+  //   return () => clearTimeout(timeoutRef.current);
+  // }, [prompt, id]);
+
   useEffect(() => {
-    timeoutRef.current = setTimeout(async () => {
+    if (prompt !== data.value) setIsEditing(true);
+  }, [prompt]);
+
+  const handleBlur = async (e?: React.FocusEvent) => {
+    // if (e) {
+    //   const relatedTarget = e.relatedTarget as HTMLElement;
+    //   if (
+    //     relatedTarget?.id === "generate-response-button"
+    //     // relatedTarget?.id === "delete-button" ||
+    //     // relatedTarget?.id === "add-message-button"
+    //   ) {
+    //     return;
+    //   }
+    // }
+
+    if (isEditing) {
+      // update messages state
+      setMessages((prev: MessageType[]) =>
+        prev.map((msg) => (msg.id === id ? { ...msg, content: prompt } : msg))
+      );
+      // save message to database
       const response = await supabase
         .from("messages")
         .update({ content: prompt })
         .eq("id", id);
 
       if (response.error) console.error(response.error);
-    }, 3000);
-
-    return () => clearTimeout(timeoutRef.current);
-  }, [prompt, id]);
+      setIsEditing(false);
+    }
+  };
 
   // code to hide the bottom handle when textarea expands.
   useEffect(() => {
@@ -88,6 +127,10 @@ export default function Node({
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.focus({ preventScroll: true });
+      textareaRef.current.setSelectionRange(
+        textareaRef.current.value.length,
+        textareaRef.current.value.length
+      );
     }
   }, []);
 
@@ -161,12 +204,17 @@ export default function Node({
     userMessage: string,
     assistantResponse: string
   ): Promise<string> {
+    const openaiApiKey = localStorage.getItem("openai-api-key");
+    const anthropicApiKey = localStorage.getItem("anthropic-api-key");
+
     const response = await fetch("/api/chat-name", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         userMessage: userMessage,
         assistantResponse: assistantResponse,
+        openaiApiKey: openaiApiKey,
+        anthropicApiKey: anthropicApiKey,
       }),
     });
     if (!response.ok) {
@@ -182,6 +230,8 @@ export default function Node({
     dispatch(setNodeId(responseId));
     dispatch(setAwaitingResponse(true));
     dispatch(clearStreamedMessage());
+
+    await handleBlur();
 
     const modelNameUsed = model.name;
     const modelAliasUsed = model.alias;
@@ -225,14 +275,27 @@ export default function Node({
     // STREAMING from /api/llm
     let accumulatedContent = "";
     try {
+      const openaiApiKey = localStorage.getItem("openai-api-key");
+      const anthropicApiKey = localStorage.getItem("anthropic-api-key");
+
       const res = await fetch("/api/llm", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           modelAlias: modelAliasUsed,
           messages: parentMessages,
+          openaiApiKey: openaiApiKey,
+          anthropicApiKey: anthropicApiKey,
         }),
       });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error(`API Error: ${errorText}`);
+        return;
+      }
 
       if (!res.body) {
         throw new Error("No response body from /api/llm.");
@@ -358,6 +421,7 @@ export default function Node({
                   onClickDelete();
                 }}
                 className="hover:text-red-600 transition ease-in-out"
+                id="delete-button"
               >
                 Delete
               </button>
@@ -366,7 +430,6 @@ export default function Node({
           {data.label === "user" && (
             <TextareaAutosize
               value={prompt}
-              spellCheck={false}
               placeholder={
                 data.parent_id ? "Type your message..." : "Ask anything..."
               }
@@ -383,6 +446,8 @@ export default function Node({
                   }
                 }
               }}
+              // onBlur={handleBlur}
+              onBlurCapture={handleBlur}
               onClick={(e) => {
                 e.stopPropagation(); // this is so that i can click directly into the textarea
               }}
@@ -432,6 +497,7 @@ export default function Node({
                   onClick={onClickAddPrompt}
                   className="hover:text-gray-600 transition ease-in-out disabled:hover:text-gray-400 disabled:cursor-not-allowed"
                   disabled={messages?.length <= 1}
+                  id="add-message-button"
                 >
                   Add message
                 </button>
@@ -439,6 +505,7 @@ export default function Node({
                   onClick={onClickGenerateResponse}
                   className="hover:text-gray-600 transition ease-in-out disabled:hover:text-gray-400 disabled:cursor-not-allowed"
                   disabled={!prompt.trim()}
+                  id="generate-response-button"
                 >
                   Generate response
                 </button>
