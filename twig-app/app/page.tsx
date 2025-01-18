@@ -23,6 +23,18 @@ import { Session } from "@supabase/supabase-js";
 import { supabaseClient } from "@/lib/supabaseClient";
 import SignInWithGoogle from "@/app/components/profile/SignInWithGoogle";
 import Tooltip from "@mui/joy/Tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { FaKey } from "react-icons/fa";
 
 type Model = {
   name: string;
@@ -47,12 +59,16 @@ export default function Home() {
   const [session, setSession] = useState<Session | null>(null); // if user is signed in or not
   const [userID, setUserID] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+  const [dialogOpen, setDialogOpen] = useState<boolean>(false); // dialog for api keys
   const [selectedChatID, setSelectedChatID] = useState<string | null>(null);
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [chats, setChats] = useState<ChatType[]>([]);
-  const [modelName, setModelName] = useState<string>("GPT-4o");
-  const [modelAlias, setModelAlias] = useState<string>("chatgpt-4o-latest");
+  const [modelName, setModelName] = useState<string>("Insert API Key");
+  const [modelAlias, setModelAlias] = useState<string>("");
   const [flowKey, setFlowKey] = useState(0); // to force ReactFlow to re-render (so fitView works when you change chats)
+
+  const openaiInputRef = useRef<HTMLInputElement>(null); // refs to store API keys
+  const anthropicInputRef = useRef<HTMLInputElement>(null);
 
   // check if user is signed in
   useEffect(() => {
@@ -99,6 +115,50 @@ export default function Home() {
     };
   }, []);
 
+  // Initialize refs with localStorage values when dialog opens
+  const handleDialogOpen = () => {
+    if (openaiInputRef.current) {
+      openaiInputRef.current.value =
+        localStorage.getItem("openai-api-key") || "";
+    }
+    if (anthropicInputRef.current) {
+      anthropicInputRef.current.value =
+        localStorage.getItem("anthropic-api-key") || "";
+    }
+    setDialogOpen(true);
+  };
+
+  function checkAPIKeys () {
+    const openaiKey = localStorage.getItem("openai-api-key");
+    const anthropicKey = localStorage.getItem("anthropic-api-key");
+    
+    if (openaiKey) {
+      setModelName("GPT-4o");
+      setModelAlias("chatgpt-4o-latest");
+    } else if (anthropicKey) {
+      setModelName("Claude 3.5 Sonnet");
+      setModelAlias("claude-3-5-sonnet-latest");
+    } else {
+      setModelName("Insert API Key");
+      setModelAlias("");
+    }
+  }
+
+  useEffect(() => {
+    checkAPIKeys();
+  }, []);
+
+  const handleSaveChanges = () => {
+    // Save api keys to localStorage
+    localStorage.setItem("openai-api-key", openaiInputRef.current?.value || "");
+    localStorage.setItem(
+      "anthropic-api-key",
+      anthropicInputRef.current?.value || ""
+    );
+    setDialogOpen(false);
+    checkAPIKeys();
+  };
+
   // show blank chat
   const initialLoadRef = useRef(false);
   useEffect(() => {
@@ -131,10 +191,10 @@ export default function Home() {
     else setChats(data as ChatType[]);
   }
 
+  // load messages
   useEffect(() => {
     if (isLoading) return;
     if (!session) {
-      console.log("No session");
       setMessages([
         {
           id: uuidv4(),
@@ -282,7 +342,11 @@ export default function Home() {
               <div className="fixed top-2 right-3 z-50">
                 {session && <Profile session={session} />}
                 {!session && (
-                  <Tooltip title="Sign in to save chat history" variant="solid" arrow>
+                  <Tooltip
+                    title="Sign in to save chat history"
+                    variant="solid"
+                    arrow
+                  >
                     <div>
                       <SignInWithGoogle />
                     </div>
@@ -333,7 +397,7 @@ export default function Home() {
                           <IoIosArrowDown />
                         </div>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-60">
+                      <DropdownMenuContent align="start" className="w-72">
                         <DropdownMenuLabel className="font-normal text-gray-400 text-xs">
                           Select a model
                         </DropdownMenuLabel>
@@ -343,21 +407,14 @@ export default function Home() {
                             setModelName("GPT-4o");
                             setModelAlias("chatgpt-4o-latest");
                           }}
-                          disabled
+                          disabled={!localStorage.getItem("openai-api-key")}
                         >
                           GPT-4o
-                          <DropdownMenuShortcut>Plus</DropdownMenuShortcut>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="cursor-pointer"
-                          onClick={() => {
-                            setModelName("Claude 3.5 Sonnet");
-                            setModelAlias("claude-3-5-sonnet-latest");
-                          }}
-                          disabled
-                        >
-                          Claude 3.5 Sonnet
-                          <DropdownMenuShortcut>Plus</DropdownMenuShortcut>
+                          {!localStorage.getItem("openai-api-key") && (
+                            <DropdownMenuShortcut>
+                              API Key required
+                            </DropdownMenuShortcut>
+                          )}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="cursor-pointer"
@@ -365,8 +422,29 @@ export default function Home() {
                             setModelName("GPT-4o mini");
                             setModelAlias("gpt-4o-mini");
                           }}
+                          disabled={!localStorage.getItem("openai-api-key")}
                         >
                           GPT-4o mini
+                          {!localStorage.getItem("openai-api-key") && (
+                            <DropdownMenuShortcut>
+                              API Key required
+                            </DropdownMenuShortcut>
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setModelName("Claude 3.5 Sonnet");
+                            setModelAlias("claude-3-5-sonnet-latest");
+                          }}
+                          disabled={!localStorage.getItem("anthropic-api-key")}
+                        >
+                          Claude 3.5 Sonnet
+                          {!localStorage.getItem("anthropic-api-key") && (
+                            <DropdownMenuShortcut>
+                              API Key required
+                            </DropdownMenuShortcut>
+                          )}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="cursor-pointer"
@@ -374,21 +452,75 @@ export default function Home() {
                             setModelName("Claude 3.5 Haiku");
                             setModelAlias("claude-3-5-haiku-latest");
                           }}
+                          disabled={!localStorage.getItem("anthropic-api-key")}
                         >
                           Claude 3.5 Haiku
+                          {!localStorage.getItem("anthropic-api-key") && (
+                            <DropdownMenuShortcut>
+                              API Key required
+                            </DropdownMenuShortcut>
+                          )}
                         </DropdownMenuItem>
+
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="cursor-pointer bg-gray-100">
-                          <div>
-                            <div>Unlock all models with Plus</div>
-                            <div>$15/month</div>
-                          </div>
+
+                        <DropdownMenuItem
+                          onClick={handleDialogOpen}
+                          className="cursor-pointer"
+                        >
+                          My API Keys <FaKey />
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
                 </div>
               </div>
+
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>API Keys</DialogTitle>
+                    <DialogDescription>
+                      Insert your API keys here. Your keys will only be stored
+                      locally in your browser.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="openai-key" className="text-right">
+                        OpenAI
+                      </Label>
+                      <Input
+                        id="openai-key"
+                        ref={openaiInputRef}
+                        className="col-span-3"
+                        type="password"
+                        defaultValue={
+                          localStorage.getItem("openai-api-key") || ""
+                        }
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="anthropic-key" className="text-right">
+                        Anthropic
+                      </Label>
+                      <Input
+                        id="anthropic-key"
+                        ref={anthropicInputRef}
+                        className="col-span-3"
+                        type="password"
+                        defaultValue={
+                          localStorage.getItem("anthropic-api-key") || ""
+                        }
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={handleSaveChanges}>Save changes</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </>
           )}
           <div className="h-full w-full z-0" key={flowKey}>
