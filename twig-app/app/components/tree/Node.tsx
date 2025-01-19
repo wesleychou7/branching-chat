@@ -46,7 +46,6 @@ export default function Node({
   const model = useContext(ModelContext);
   const userID = useContext(UserContext).id;
   const [prompt, setPrompt] = useState<string>(data.value);
-  const nodeRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [copyText, setCopyText] = useState<string>("Copy");
@@ -82,7 +81,7 @@ export default function Node({
   useEffect(() => {
     if (textareaRef.current) {
       setInitialHeight(textareaRef.current.clientHeight);
-      setHideBottomHandle(false);
+    setHideBottomHandle(false);
     }
   }, []);
   function onHeightChange() {
@@ -102,7 +101,7 @@ export default function Node({
       textareaRef.current.setSelectionRange(
         textareaRef.current.value.length,
         textareaRef.current.value.length
-      );
+        );
     }
   }, [focusedNodeId, id, messages.length]);
 
@@ -388,7 +387,6 @@ export default function Node({
     <>
       <div
         className={`${data.label === "user" ? "user-node" : ""} cursor-default`}
-        ref={nodeRef}
       >
         <div
           className={`${
@@ -416,7 +414,18 @@ export default function Node({
           {data.label === "user" && (
             <TextareaAutosize
               value={prompt}
-              // spellCheck={false}
+              onBlur={(e) => {
+                const relatedTarget = e.relatedTarget as HTMLElement;
+                const buttonIds = [
+                  "copy-button",
+                  "delete-button",
+                  "add-message-button",
+                  "generate-response-button",
+                ];
+                if (!relatedTarget || !buttonIds.includes(relatedTarget.id)) {
+                  dispatch(applyChangesThunk());
+                }
+              }}
               placeholder={
                 data.parent_id ? "Type your message..." : "Ask anything..."
               }
@@ -513,6 +522,7 @@ export default function Node({
                       onClickCopy();
                     }}
                     className="hover:text-gray-600 transition ease-in-out"
+                    id="copy-button"
                   >
                     {copyText}
                   </button>
