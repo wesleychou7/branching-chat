@@ -4,9 +4,15 @@ import { MessageType, ChatType } from "@/app/components/types";
 import TextareaAutosize from "react-textarea-autosize";
 import supabase from "@/app/supabase";
 import { v4 as uuidv4 } from "uuid";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { store } from "@/app/store";
 import type { RootState } from "@/app/store";
-import { setMessages } from "@/app/components/tree/messageSlice";
+import { AppDispatch } from "@/app/store"; // Make sure this path is correct
+import {
+  setMessages,
+  addChange,
+  applyChangesThunk,
+} from "@/app/components/tree/messageSlice";
 import { ModelContext } from "@/app/page";
 import { UserContext } from "@/app/page";
 import {
@@ -49,7 +55,7 @@ export default function Node({
   const [hideBottomHandle, setHideBottomHandle] = useState<boolean>(false);
 
   // redux for streaming response
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const nodeId = useSelector((state: RootState) => state.message.nodeId);
   const awaitingResponse = useSelector((state: RootState) =>
     state.message.nodeId === id ? state.message.awaitingResponse : false
@@ -100,7 +106,12 @@ export default function Node({
     }
   }, [focusedNodeId, id, messages.length]);
 
-  async function onClickAddPrompt() {
+  async function onClickAddMessage() {
+    await dispatch(applyChangesThunk());
+
+    // Get latest messages state after changes are applied
+    const currentMessages = store.getState().message.messages;
+
     // add message to message state
     const newMessage: MessageType = {
       id: uuidv4(),
@@ -108,7 +119,7 @@ export default function Node({
       role: "user",
       content: "",
     };
-    dispatch(setMessages([...messages, newMessage]));
+    dispatch(setMessages([...currentMessages, newMessage]));
     setFocusedNodeId(newMessage.id);
 
     // add message to database
@@ -195,6 +206,11 @@ export default function Node({
   }
 
   async function onClickGenerateResponse() {
+    await dispatch(applyChangesThunk());
+
+    // Get latest messages state after changes are applied
+    const currentMessages = store.getState().message.messages;
+
     const responseId = uuidv4();
     dispatch(setNodeId(responseId));
     dispatch(setAwaitingResponse(true));
@@ -203,13 +219,7 @@ export default function Node({
     const modelNameUsed = model.name;
     const modelAliasUsed = model.alias;
 
-    let newMessages = [...messages];
-
-    // Update the current user-node prompt in local state
-    newMessages = newMessages.map((msg) =>
-      msg.id === id ? { ...msg, content: prompt } : msg
-    );
-    dispatch(setMessages(newMessages));
+    let newMessages = [...currentMessages];
 
     // Add an empty assistant response in local state
     const newMessage: MessageType = {
@@ -220,7 +230,7 @@ export default function Node({
       content: "",
     };
     newMessages = [...newMessages, newMessage];
-    dispatch(setMessages([...messages, newMessage]));
+    dispatch(setMessages([...currentMessages, newMessage]));
 
     // Retrieve *all* messages by traversing up this node's ancestors
     const parentMessages: MessageType[] = (function () {
@@ -228,7 +238,7 @@ export default function Node({
       let currentId: string | null = id;
 
       while (currentId) {
-        const foundMessage = messages.find(
+        const foundMessage = currentMessages.find(
           (msg: MessageType) => msg.id === currentId
         );
         if (!foundMessage) break;
@@ -406,12 +416,20 @@ export default function Node({
           {data.label === "user" && (
             <TextareaAutosize
               value={prompt}
-              spellCheck={false}
+              // spellCheck={false}
               placeholder={
                 data.parent_id ? "Type your message..." : "Ask anything..."
               }
               onChange={(e) => {
                 setPrompt(e.target.value);
+                dispatch(
+                  addChange({
+                    id: data.id,
+                    content: e.target.value,
+                    role: "user",
+                    parent_id: data.parent_id,
+                  })
+                );
               }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -427,17 +445,6 @@ export default function Node({
                 e.stopPropagation(); // this is so that i can click directly into the textarea
               }}
               onHeightChange={onHeightChange}
-              // onFocus={() => {
-              //   setFocusedNodeId(id);
-              // }}
-              // onBlurCapture={() => {
-              //   if (id === focusedNodeId) {
-              //     const newMessages = messages.map((msg) =>
-              //       msg.id === id ? { ...msg, content: prompt } : msg
-              //     );
-              //     dispatch(setMessages(newMessages));
-              //   }
-              // }}
               ref={textareaRef}
               className="nopan bg-gray-50" // nopan so that highlighting in the textarea doesn't drag the tree view
               style={{
@@ -480,7 +487,7 @@ export default function Node({
             {data.label === "user" && (
               <div className="flex justify-end gap-4">
                 <button
-                  onClick={onClickAddPrompt}
+                  onClick={onClickAddMessage}
                   className="hover:text-gray-600 transition ease-in-out disabled:hover:text-gray-400 disabled:cursor-not-allowed"
                   disabled={messages?.length <= 1}
                   id="add-message-button"
@@ -510,7 +517,7 @@ export default function Node({
                     {copyText}
                   </button>
                   <button
-                    onClick={onClickAddPrompt}
+                    onClick={onClickAddMessage}
                     className="hover:text-gray-600 transition ease-in-out"
                   >
                     Add message
