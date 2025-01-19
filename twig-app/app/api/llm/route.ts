@@ -15,7 +15,7 @@ function mapToAnthropicMessages(messages: MessageType[]) {
     return messages.map(({ role, content }) => ({ role, content }));
 }
 
-export async function* generateResponse(
+async function* generateResponse(
     modelAlias: string,
     messages: MessageType[],
     openaiApiKey: string,

@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import { OpenAI } from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 
-export async function generateChatName(
+async function generateChatName(
     userMessage: string,
     assistantResponse: string,
     openaiApiKey: string,
