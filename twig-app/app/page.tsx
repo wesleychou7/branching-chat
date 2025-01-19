@@ -35,8 +35,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FaKey } from "react-icons/fa";
-import { RootState } from "@/app/store";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { setMessages } from "@/app/components/tree/messageSlice";
 
 type Model = {
@@ -74,7 +73,6 @@ export default function Home() {
   const anthropicInputRef = useRef<HTMLInputElement>(null);
 
   const dispatch = useDispatch();
-  const messages = useSelector((state: RootState) => state.message.messages);
 
   // check if user is signed in
   useEffect(() => {
@@ -532,10 +530,6 @@ export default function Home() {
             </>
           )}
           <div className="h-full w-full z-0" key={flowKey}>
-            {/* <div className="fixed top-0 left-0 w-full h-full -mt-16
-                flex items-center justify-center">
-              Welcome to BranchingChat
-            </div> */}
             <ReactFlowProvider>
               {useMemo(
                 () => (
