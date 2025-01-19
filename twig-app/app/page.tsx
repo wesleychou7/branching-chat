@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useMemo, createContext, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import SideBar from "@/app/components/sidebar/SideBar";
 import Tree from "@/app/components/tree/Tree";
 import supabase from "@/app/supabase";
@@ -37,24 +37,7 @@ import { Button } from "@/components/ui/button";
 import { FaKey } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { setMessages } from "@/app/components/tree/messageSlice";
-
-type Model = {
-  name: string;
-  alias: string;
-};
-
-type User = {
-  id: string | null;
-};
-
-export const ModelContext = createContext<Model>({
-  name: "",
-  alias: "",
-});
-
-export const UserContext = createContext<User>({
-  id: null,
-});
+import { ModelContext, UserContext } from "@/app/contexts/contexts";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState<boolean>(true);

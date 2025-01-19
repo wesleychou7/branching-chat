@@ -8,7 +8,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import Dagre from "@dagrejs/dagre";
 import { useState, useRef, useEffect, useContext } from "react";
-import { UserContext } from "@/app/page";
+import { UserContext } from "@/app/contexts/contexts";
 import { NodeType, EdgeType, ChatType } from "@/app/components/types";
 import Node from "./Node";
 import "./Node.css";

@@ -13,8 +13,7 @@ import {
   addChange,
   applyChangesThunk,
 } from "@/app/components/tree/messageSlice";
-import { ModelContext } from "@/app/page";
-import { UserContext } from "@/app/page";
+import { ModelContext, UserContext } from "@/app/contexts/contexts";
 import {
   setNodeId,
   appendStreamedMessage,
