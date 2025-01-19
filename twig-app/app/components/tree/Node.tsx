@@ -80,7 +80,7 @@ export default function Node({
   useEffect(() => {
     if (textareaRef.current) {
       setInitialHeight(textareaRef.current.clientHeight);
-    setHideBottomHandle(false);
+      setHideBottomHandle(false);
     }
   }, []);
   function onHeightChange() {
@@ -100,7 +100,7 @@ export default function Node({
       textareaRef.current.setSelectionRange(
         textareaRef.current.value.length,
         textareaRef.current.value.length
-        );
+      );
     }
   }, [focusedNodeId, id, messages.length]);
 
@@ -404,7 +404,7 @@ export default function Node({
                   onClickDelete();
                 }}
                 className="hover:text-red-600 transition ease-in-out"
-                id="delete-button"
+                id={"delete-button"}
               >
                 Delete
               </button>
@@ -412,6 +412,7 @@ export default function Node({
           </div>
           {data.label === "user" && (
             <TextareaAutosize
+              id={"textarea"}
               value={prompt}
               onBlur={(e) => {
                 const relatedTarget = e.relatedTarget as HTMLElement;
@@ -420,6 +421,7 @@ export default function Node({
                   "delete-button",
                   "add-message-button",
                   "generate-response-button",
+                  "textarea",
                 ];
                 if (!relatedTarget || !buttonIds.includes(relatedTarget.id)) {
                   dispatch(applyChangesThunk());
@@ -498,7 +500,7 @@ export default function Node({
                   onClick={onClickAddMessage}
                   className="hover:text-gray-600 transition ease-in-out disabled:hover:text-gray-400 disabled:cursor-not-allowed"
                   disabled={messages?.length <= 1}
-                  id="add-message-button"
+                  id={"add-message-button"}
                 >
                   Add message
                 </button>
@@ -506,7 +508,7 @@ export default function Node({
                   onClick={onClickGenerateResponse}
                   className="hover:text-gray-600 transition ease-in-out disabled:hover:text-gray-400 disabled:cursor-not-allowed"
                   disabled={!prompt.trim()}
-                  id="generate-response-button"
+                  id={"generate-response-button"}
                 >
                   Generate response
                 </button>
@@ -521,13 +523,14 @@ export default function Node({
                       onClickCopy();
                     }}
                     className="hover:text-gray-600 transition ease-in-out"
-                    id="copy-button"
+                    id={"copy-button"}
                   >
                     {copyText}
                   </button>
                   <button
                     onClick={onClickAddMessage}
                     className="hover:text-gray-600 transition ease-in-out"
+                    id={"add-message-button"}
                   >
                     Add message
                   </button>
