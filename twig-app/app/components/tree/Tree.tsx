@@ -9,14 +9,11 @@ import "@xyflow/react/dist/style.css";
 import Dagre from "@dagrejs/dagre";
 import { useState, useRef, useEffect, useContext } from "react";
 import { UserContext } from "@/app/page";
-import {
-  MessageType,
-  NodeType,
-  EdgeType,
-  ChatType,
-} from "@/app/components/types";
+import { NodeType, EdgeType, ChatType } from "@/app/components/types";
 import Node from "./Node";
 import "./Node.css";
+import { RootState } from "@/app/store";
+import { useSelector } from "react-redux";
 
 /**
  * Adjust these spacings as you like:
@@ -190,20 +187,16 @@ const getLayoutedElements = (nodes: any[], edges: any[]) => {
 interface Props {
   selectedChatID: string | null;
   setChats: React.Dispatch<React.SetStateAction<ChatType[]>>;
-  messages: MessageType[];
-  setMessages: React.Dispatch<React.SetStateAction<MessageType[]>>;
 }
 
-export default function Tree({
-  selectedChatID,
-  setChats,
-  messages,
-  setMessages,
-}: Props) {
+export default function Tree({ selectedChatID, setChats }: Props) {
+  const messages = useSelector((state: RootState) => state.message.messages);
+
   const userID = useContext(UserContext).id;
   const [heightsCalculated, setHeightsCalculated] = useState<boolean>(false);
   const [nodes, setNodes] = useState<NodeType[]>([]);
   const [edges, setEdges] = useState<EdgeType[]>([]);
+  const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const refs = useRef<(HTMLDivElement | null)[]>([]); // refs for each node to get height
 
   const nodeTypes = {
@@ -212,8 +205,8 @@ export default function Tree({
         {...props}
         selectedChatID={selectedChatID}
         setChats={setChats}
-        messages={messages}
-        setMessages={setMessages}
+        focusedNodeId={focusedNodeId}
+        setFocusedNodeId={setFocusedNodeId}
       />
     ),
   };
@@ -269,16 +262,16 @@ export default function Tree({
         }
       }
 
-      if (!userID && newNodes.length > 0) { // weird thing i have to do - look into this in the future
+      if (!userID && newNodes.length > 0) {
+        // weird thing i have to do - look into this in the future
         setNodes(customLayout(newNodes, edges));
-      } 
-      else if (userID) {
+      } else if (userID) {
         setNodes(customLayout(newNodes, edges));
       }
 
       setHeightsCalculated(true);
     }
-  }, [heightsCalculated, nodes, edges]);
+  }, [heightsCalculated, nodes, edges, userID]);
 
   return (
     <div className="relative w-full h-full">

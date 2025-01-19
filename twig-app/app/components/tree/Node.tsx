@@ -6,6 +6,7 @@ import supabase from "@/app/supabase";
 import { v4 as uuidv4 } from "uuid";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
+import { setMessages } from "@/app/components/tree/messageSlice";
 import { ModelContext } from "@/app/page";
 import { UserContext } from "@/app/page";
 import {
@@ -31,13 +32,14 @@ export default function Node({
   data,
   selectedChatID,
   setChats,
-  messages,
-  setMessages,
+  focusedNodeId,
+  setFocusedNodeId,
 }: any) {
+  const messages = useSelector((state: RootState) => state.message.messages);
+
   const model = useContext(ModelContext);
   const userID = useContext(UserContext).id;
   const [prompt, setPrompt] = useState<string>(data.value);
-  const [isEditing, setIsEditing] = useState<boolean>(false);
   const nodeRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -56,58 +58,19 @@ export default function Node({
     state.message.nodeId === id ? state.message.streamedMessage : ""
   );
 
-  // useEffect(() => {
-  //   // update messages state
-  //   if (data.value !== prompt) {
-  //     setMessages((prev: MessageType[]) =>
-  //       prev.map((msg) => (msg.id === id ? { ...msg, content: prompt } : msg))
-  //     );
-  //   }
-
-  //   // update message in database after user stops typing for 1 seconds
-  //   timeoutRef.current = setTimeout(async () => {
-  //     const response = await supabase
-  //       .from("messages")
-  //       .update({ content: prompt })
-  //       .eq("id", id);
-
-  //     if (response.error) console.error(response.error);
-  //   }, 1000);
-
-  //   return () => clearTimeout(timeoutRef.current);
-  // }, [prompt, id]);
-
+  // update message in database after user stops typing for 0.5 second
   useEffect(() => {
-    if (prompt !== data.value) setIsEditing(true);
-  }, [prompt]);
-
-  const handleBlur = async (e?: React.FocusEvent) => {
-    // if (e) {
-    //   const relatedTarget = e.relatedTarget as HTMLElement;
-    //   if (
-    //     relatedTarget?.id === "generate-response-button"
-    //     // relatedTarget?.id === "delete-button" ||
-    //     // relatedTarget?.id === "add-message-button"
-    //   ) {
-    //     return;
-    //   }
-    // }
-
-    if (isEditing) {
-      // update messages state
-      setMessages((prev: MessageType[]) =>
-        prev.map((msg) => (msg.id === id ? { ...msg, content: prompt } : msg))
-      );
-      // save message to database
+    timeoutRef.current = setTimeout(async () => {
       const response = await supabase
         .from("messages")
         .update({ content: prompt })
         .eq("id", id);
 
       if (response.error) console.error(response.error);
-      setIsEditing(false);
-    }
-  };
+    }, 500);
+
+    return () => clearTimeout(timeoutRef.current);
+  }, [prompt, id]);
 
   // code to hide the bottom handle when textarea expands.
   useEffect(() => {
@@ -123,16 +86,19 @@ export default function Node({
     }
   }
 
-  // focus textarea and prevent scroll
+  // focus textarea when focusedNodeId matches or there's only 1 message
   useEffect(() => {
-    if (textareaRef.current) {
+    if (
+      (focusedNodeId === id || messages.length === 1) &&
+      textareaRef.current
+    ) {
       textareaRef.current.focus({ preventScroll: true });
       textareaRef.current.setSelectionRange(
         textareaRef.current.value.length,
         textareaRef.current.value.length
       );
     }
-  }, []);
+  }, [focusedNodeId, id, messages.length]);
 
   async function onClickAddPrompt() {
     // add message to message state
@@ -142,7 +108,8 @@ export default function Node({
       role: "user",
       content: "",
     };
-    setMessages((prev: MessageType[]) => prev.concat(newMessage));
+    dispatch(setMessages([...messages, newMessage]));
+    setFocusedNodeId(newMessage.id);
 
     // add message to database
     const response = await supabase.from("messages").insert({
@@ -187,8 +154,10 @@ export default function Node({
     collectIdsToDelete(id);
 
     // delete messages and all their children from message state
-    setMessages((prev: MessageType[]) =>
-      prev.filter((msg: MessageType) => !idsToDelete.has(msg.id))
+    dispatch(
+      setMessages(
+        messages.filter((msg: MessageType) => !idsToDelete.has(msg.id))
+      )
     );
 
     // delete messages and all their children from database
@@ -231,15 +200,16 @@ export default function Node({
     dispatch(setAwaitingResponse(true));
     dispatch(clearStreamedMessage());
 
-    await handleBlur();
-
     const modelNameUsed = model.name;
     const modelAliasUsed = model.alias;
 
+    let newMessages = [...messages];
+
     // Update the current user-node prompt in local state
-    setMessages((prev: MessageType[]) =>
-      prev.map((msg) => (msg.id === id ? { ...msg, content: prompt } : msg))
+    newMessages = newMessages.map((msg) =>
+      msg.id === id ? { ...msg, content: prompt } : msg
     );
+    dispatch(setMessages(newMessages));
 
     // Add an empty assistant response in local state
     const newMessage: MessageType = {
@@ -249,7 +219,8 @@ export default function Node({
       model_name: modelNameUsed,
       content: "",
     };
-    setMessages((prev: MessageType[]) => [...prev, newMessage]);
+    newMessages = [...newMessages, newMessage];
+    dispatch(setMessages([...messages, newMessage]));
 
     // Retrieve *all* messages by traversing up this node's ancestors
     const parentMessages: MessageType[] = (function () {
@@ -257,14 +228,18 @@ export default function Node({
       let currentId: string | null = id;
 
       while (currentId) {
+        const foundMessage = messages.find(
+          (msg: MessageType) => msg.id === currentId
+        );
+        if (!foundMessage) break;
+
         const message =
           currentId === id
             ? {
-                ...messages.find((msg: MessageType) => msg.id === currentId),
+                ...foundMessage,
                 content: prompt,
               }
-            : messages.find((msg: MessageType) => msg.id === currentId);
-        if (!message) break;
+            : foundMessage;
 
         result.push(message);
         currentId = message.parent_id;
@@ -320,11 +295,10 @@ export default function Node({
     }
 
     // Once complete, store the final accumulated content in local state
-    setMessages((prev: MessageType[]) => {
-      return prev.map((msg) =>
-        msg.id === responseId ? { ...msg, content: accumulatedContent } : msg
-      );
-    });
+    newMessages = newMessages.map((msg) =>
+      msg.id === responseId ? { ...msg, content: accumulatedContent } : msg
+    );
+    dispatch(setMessages(newMessages));
 
     dispatch(setAwaitingResponse(false));
 
@@ -335,7 +309,9 @@ export default function Node({
       role: "user",
       content: "",
     };
-    setMessages((prev: MessageType[]) => [...prev, newUserMessage]);
+    newMessages = [...newMessages, newUserMessage];
+    dispatch(setMessages(newMessages));
+    setFocusedNodeId(newUserMessage.id);
 
     // do not do database updates if user is not signed in
     if (!userID) return;
@@ -430,6 +406,7 @@ export default function Node({
           {data.label === "user" && (
             <TextareaAutosize
               value={prompt}
+              spellCheck={false}
               placeholder={
                 data.parent_id ? "Type your message..." : "Ask anything..."
               }
@@ -446,12 +423,21 @@ export default function Node({
                   }
                 }
               }}
-              // onBlur={handleBlur}
-              onBlurCapture={handleBlur}
               onClick={(e) => {
                 e.stopPropagation(); // this is so that i can click directly into the textarea
               }}
               onHeightChange={onHeightChange}
+              // onFocus={() => {
+              //   setFocusedNodeId(id);
+              // }}
+              // onBlurCapture={() => {
+              //   if (id === focusedNodeId) {
+              //     const newMessages = messages.map((msg) =>
+              //       msg.id === id ? { ...msg, content: prompt } : msg
+              //     );
+              //     dispatch(setMessages(newMessages));
+              //   }
+              // }}
               ref={textareaRef}
               className="nopan bg-gray-50" // nopan so that highlighting in the textarea doesn't drag the tree view
               style={{

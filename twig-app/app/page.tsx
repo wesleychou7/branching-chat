@@ -35,6 +35,9 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FaKey } from "react-icons/fa";
+import { RootState } from "@/app/store";
+import { useDispatch, useSelector } from "react-redux";
+import { setMessages } from "@/app/components/tree/messageSlice";
 
 type Model = {
   name: string;
@@ -61,14 +64,17 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [dialogOpen, setDialogOpen] = useState<boolean>(false); // dialog for api keys
   const [selectedChatID, setSelectedChatID] = useState<string | null>(null);
-  const [messages, setMessages] = useState<MessageType[]>([]);
   const [chats, setChats] = useState<ChatType[]>([]);
   const [modelName, setModelName] = useState<string>("Insert API Key");
   const [modelAlias, setModelAlias] = useState<string>("");
   const [flowKey, setFlowKey] = useState(0); // to force ReactFlow to re-render (so fitView works when you change chats)
+  const [showWelcome, setShowWelcome] = useState<boolean>(true);
 
   const openaiInputRef = useRef<HTMLInputElement>(null); // refs to store API keys
   const anthropicInputRef = useRef<HTMLInputElement>(null);
+
+  const dispatch = useDispatch();
+  const messages = useSelector((state: RootState) => state.message.messages);
 
   // check if user is signed in
   useEffect(() => {
@@ -128,10 +134,10 @@ export default function Home() {
     setDialogOpen(true);
   };
 
-  function checkAPIKeys () {
+  function checkAPIKeys() {
     const openaiKey = localStorage.getItem("openai-api-key");
     const anthropicKey = localStorage.getItem("anthropic-api-key");
-    
+
     if (openaiKey) {
       setModelName("GPT-4o");
       setModelAlias("chatgpt-4o-latest");
@@ -176,7 +182,7 @@ export default function Home() {
       .order("created_at", { ascending: true });
 
     if (error) console.error(error);
-    else setMessages([...(data as MessageType[])]);
+    else dispatch(setMessages([...(data as MessageType[])]));
   }
 
   async function getChats() {
@@ -195,17 +201,17 @@ export default function Home() {
   useEffect(() => {
     if (isLoading) return;
     if (!session) {
-      setMessages([
+      dispatch(setMessages([
         {
           id: uuidv4(),
           parent_id: null,
           role: "user",
           content: "",
         },
-      ]);
+      ]));
     } else {
       if (selectedChatID) getMessages(selectedChatID);
-      else setMessages([]);
+      else dispatch(setMessages([]));
     }
   }, [session, selectedChatID, isLoading]);
 
@@ -213,7 +219,7 @@ export default function Home() {
     if (isLoading) return;
     if (session) getChats();
     else setChats([]);
-  }, [session]);
+  }, [session, isLoading]);
 
   async function showBlankChat() {
     if (!session) return; // prevent operation when not authenticated
@@ -258,15 +264,17 @@ export default function Home() {
   }
 
   async function createNewChat() {
+    setShowWelcome(true);
+
     if (!session) {
-      setMessages([
+      dispatch(setMessages([
         {
           id: uuidv4(),
           parent_id: null,
           role: "user",
           content: "",
         },
-      ]);
+      ]));
       setFlowKey((oldKey) => oldKey + 1);
       return;
     }
@@ -316,7 +324,7 @@ export default function Home() {
       role: "user",
       content: "",
     };
-    setMessages([newMessage]);
+    dispatch(setMessages([newMessage]));
   }
 
   // whenever selectedChatID changes, increment flowKey to force ReactFlow to re-render
@@ -524,17 +532,19 @@ export default function Home() {
             </>
           )}
           <div className="h-full w-full z-0" key={flowKey}>
+            {/* <div className="fixed top-0 left-0 w-full h-full -mt-16
+                flex items-center justify-center">
+              Welcome to BranchingChat
+            </div> */}
             <ReactFlowProvider>
               {useMemo(
                 () => (
                   <Tree
                     selectedChatID={selectedChatID}
                     setChats={setChats}
-                    messages={messages}
-                    setMessages={setMessages}
                   />
                 ),
-                [selectedChatID, messages, setMessages]
+                [selectedChatID]
               )}
             </ReactFlowProvider>
           </div>
