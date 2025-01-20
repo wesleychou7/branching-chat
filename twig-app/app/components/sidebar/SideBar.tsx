@@ -31,7 +31,7 @@ export default function SideBar({
         ))}
       </div>
 
-      <div className="h-20 border border-red-200"></div>
+      <div className="h-20"></div>
     </div>
   );
 }
