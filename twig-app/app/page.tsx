@@ -38,6 +38,7 @@ import { FaKey } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { setMessages } from "@/app/components/tree/messageSlice";
 import { ModelContext, UserContext } from "@/app/contexts/contexts";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -55,6 +56,7 @@ export default function Home() {
   const openaiInputRef = useRef<HTMLInputElement>(null); // refs to store API keys
   const anthropicInputRef = useRef<HTMLInputElement>(null);
 
+  const router = useRouter();
   const dispatch = useDispatch();
 
   // check if user is signed in
@@ -182,14 +184,16 @@ export default function Home() {
   useEffect(() => {
     if (isLoading) return;
     if (!session) {
-      dispatch(setMessages([
-        {
-          id: uuidv4(),
-          parent_id: null,
-          role: "user",
-          content: "",
-        },
-      ]));
+      dispatch(
+        setMessages([
+          {
+            id: uuidv4(),
+            parent_id: null,
+            role: "user",
+            content: "",
+          },
+        ])
+      );
     } else {
       if (selectedChatID) getMessages(selectedChatID);
       else dispatch(setMessages([]));
@@ -248,14 +252,16 @@ export default function Home() {
     setShowWelcome(true);
 
     if (!session) {
-      dispatch(setMessages([
-        {
-          id: uuidv4(),
-          parent_id: null,
-          role: "user",
-          content: "",
-        },
-      ]));
+      dispatch(
+        setMessages([
+          {
+            id: uuidv4(),
+            parent_id: null,
+            role: "user",
+            content: "",
+          },
+        ])
+      );
       setFlowKey((oldKey) => oldKey + 1);
       return;
     }
@@ -512,14 +518,17 @@ export default function Home() {
               </Dialog>
             </>
           )}
+          <button
+            className="fixed bottom-1 left-1 cursor-pointer text-xs z-40 text-gray-500"
+            onClick={() => router.push("/privacy-policy")}
+          >
+            Privacy Policy
+          </button>
           <div className="h-full w-full z-0" key={flowKey}>
             <ReactFlowProvider>
               {useMemo(
                 () => (
-                  <Tree
-                    selectedChatID={selectedChatID}
-                    setChats={setChats}
-                  />
+                  <Tree selectedChatID={selectedChatID} setChats={setChats} />
                 ),
                 [selectedChatID]
               )}
