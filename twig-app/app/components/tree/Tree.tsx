@@ -6,6 +6,7 @@ import {
   MiniMap,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { PanOnScrollMode } from "@xyflow/react";
 import Dagre from "@dagrejs/dagre";
 import { useState, useRef, useEffect, useContext } from "react";
 import { UserContext } from "@/app/contexts/contexts";
@@ -197,6 +198,9 @@ export default function Tree({ selectedChatID, setChats }: Props) {
   const [nodes, setNodes] = useState<NodeType[]>([]);
   const [edges, setEdges] = useState<EdgeType[]>([]);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
+  const [panOnScrollMode, setPanOnScrollMode] = useState<PanOnScrollMode>(
+    PanOnScrollMode.Vertical
+  )
   const refs = useRef<(HTMLDivElement | null)[]>([]); // refs for each node to get height
 
   const nodeTypes = {
@@ -273,6 +277,21 @@ export default function Tree({ selectedChatID, setChats }: Props) {
     }
   }, [heightsCalculated, nodes, edges, userID]);
 
+  // update panOnScrollMode based on the structure of the tree
+  useEffect(() => {
+    if (panOnScrollMode === PanOnScrollMode.Free) return;
+
+    setPanOnScrollMode(() => {
+      const parent_ids: string[] = [];
+      for (const msg of messages) {
+        if (!msg.parent_id) continue;
+        if (parent_ids.includes(msg.parent_id)) return PanOnScrollMode.Free;
+        parent_ids.push(msg.parent_id);
+      }
+      return PanOnScrollMode.Vertical;
+    })
+  }, [messages, panOnScrollMode]);
+
   return (
     <div className="relative w-full h-full">
       {!heightsCalculated && (
@@ -305,6 +324,7 @@ export default function Tree({ selectedChatID, setChats }: Props) {
         nodesDraggable={false}
         panOnScroll
         panOnScrollSpeed={1.5}
+        panOnScrollMode={panOnScrollMode}
         minZoom={0.2}
         noPanClassName="nopan"
         fitView
