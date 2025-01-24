@@ -200,8 +200,10 @@ export default function Tree({ selectedChatID, setChats }: Props) {
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [panOnScrollMode, setPanOnScrollMode] = useState<PanOnScrollMode>(
     PanOnScrollMode.Vertical
-  )
+  );
   const refs = useRef<(HTMLDivElement | null)[]>([]); // refs for each node to get height
+  const prevSelectedChatIDRef = useRef(selectedChatID);
+  const prevMessagesLengthRef = useRef(messages.length);
 
   const nodeTypes = {
     node: (props: any) => (
@@ -279,7 +281,15 @@ export default function Tree({ selectedChatID, setChats }: Props) {
 
   // update panOnScrollMode based on the structure of the tree
   useEffect(() => {
-    if (panOnScrollMode === PanOnScrollMode.Free) return;
+    if (
+      messages.length <= prevMessagesLengthRef.current &&
+      selectedChatID === prevSelectedChatIDRef.current
+    ) {
+      prevMessagesLengthRef.current = messages.length;
+      return;
+    }
+    prevMessagesLengthRef.current = messages.length;
+    prevSelectedChatIDRef.current = selectedChatID;
 
     setPanOnScrollMode(() => {
       const parent_ids: string[] = [];
@@ -289,8 +299,8 @@ export default function Tree({ selectedChatID, setChats }: Props) {
         parent_ids.push(msg.parent_id);
       }
       return PanOnScrollMode.Vertical;
-    })
-  }, [messages, panOnScrollMode]);
+    });
+  }, [selectedChatID, messages]);
 
   return (
     <div className="relative w-full h-full">
