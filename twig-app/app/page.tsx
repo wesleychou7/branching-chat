@@ -7,6 +7,7 @@ import { ChatType, MessageType } from "@/app/components/types";
 import { PiSidebarSimpleBold } from "react-icons/pi";
 import MapsUgcRoundedIcon from "@mui/icons-material/MapsUgcRounded";
 import { IoIosArrowDown } from "react-icons/io";
+import Info from "@/app/components/info/Info";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -515,12 +516,9 @@ export default function Home() {
               </Dialog>
             </>
           )}
-          <button
-            className="fixed bottom-1 left-1 cursor-pointer text-xs z-40 text-gray-500"
-            onClick={() => router.push("/privacy-policy")}
-          >
-            Privacy Policy
-          </button>
+          <div className="fixed bottom-1 left-3 z-40">
+            <Info />
+          </div>
           <div className="h-full w-full z-0" key={flowKey}>
             <ReactFlowProvider>
               {useMemo(
