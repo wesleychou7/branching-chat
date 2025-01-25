@@ -201,6 +201,7 @@ export default function Tree({ selectedChatID, setChats }: Props) {
   const [panOnScrollMode, setPanOnScrollMode] = useState<PanOnScrollMode>(
     PanOnScrollMode.Vertical
   );
+  const [showWelcome, setShowWelcome] = useState<boolean>(true);
   const refs = useRef<(HTMLDivElement | null)[]>([]); // refs for each node to get height
   const prevSelectedChatIDRef = useRef(selectedChatID);
   const prevMessagesLengthRef = useRef(messages.length);
@@ -302,6 +303,15 @@ export default function Tree({ selectedChatID, setChats }: Props) {
     });
   }, [selectedChatID, messages]);
 
+  // show welcome message
+  useEffect(() => {
+    if (messages.length === 1) {
+      setShowWelcome(true);
+    } else {
+      setShowWelcome(false);
+    }
+  }, [selectedChatID, messages]);
+
   return (
     <div className="relative w-full h-full">
       {!heightsCalculated && (
@@ -348,6 +358,14 @@ export default function Tree({ selectedChatID, setChats }: Props) {
         ]}
       >
         <Background />
+        {showWelcome && (
+          <div className="fixed w-full top-[32%] flex flex-col items-center justify-center">
+            <div className="text-[25px] font-semibold">
+              Welcome to BranchingChat
+            </div>
+            <div className="text-gray-600">Dive deep into any topic.</div>
+          </div>
+        )}
         <div className="fixed bottom-0 right-0 z-50">
           <MiniMap pannable zoomable />
         </div>

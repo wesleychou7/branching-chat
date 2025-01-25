@@ -51,7 +51,6 @@ export default function Home() {
   const [modelName, setModelName] = useState<string>("Insert API Key");
   const [modelAlias, setModelAlias] = useState<string>("");
   const [flowKey, setFlowKey] = useState(0); // to force ReactFlow to re-render (so fitView works when you change chats)
-  const [showWelcome, setShowWelcome] = useState<boolean>(true);
 
   const openaiInputRef = useRef<HTMLInputElement>(null); // refs to store API keys
   const anthropicInputRef = useRef<HTMLInputElement>(null);
@@ -249,8 +248,6 @@ export default function Home() {
   }
 
   async function createNewChat() {
-    setShowWelcome(true);
-
     if (!session) {
       dispatch(
         setMessages([

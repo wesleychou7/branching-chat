@@ -540,7 +540,14 @@ export default function Node({
         </div>
 
         {data.height > 1 && (
-          <Handle type="target" position={Position.Top} isConnectable={false} />
+          <Handle
+            type="target"
+            position={Position.Top}
+            isConnectable={false}
+            style={{
+              visibility: data.parent_id ? "visible" : "hidden",
+            }}
+          />
         )}
         {data.height > 1 && (
           <Handle
@@ -549,8 +556,10 @@ export default function Node({
             isConnectable={false}
             style={{
               visibility:
-                awaitingResponse || hideBottomHandle ? "hidden" : "visible",
-            }} // hide bottom handle when streaming response or when textarea is expanded
+                awaitingResponse || hideBottomHandle || messages.length <= 1
+                  ? "hidden"
+                  : "visible",
+            }}
           />
         )}
       </div>
