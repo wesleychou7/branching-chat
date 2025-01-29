@@ -234,7 +234,7 @@ export default function Home() {
       // 3) Check if this top-most chat is named "(New Chat)"
       //    and verify there's exactly 1 message with empty content.
       if (
-        chat.name === "(New Chat)" &&
+        chat.name === "New Chat" &&
         chat.messages &&
         chat.messages.length === 1 &&
         chat.messages[0].content === ""
@@ -270,7 +270,7 @@ export default function Home() {
 
     const chatResponse = await supabase
       .from("chats")
-      .insert({ id: newChatID, name: "(New Chat)", user_id: userID });
+      .insert({ id: newChatID, name: "New Chat", user_id: userID });
 
     if (chatResponse.error) {
       console.error(chatResponse.error);
@@ -293,7 +293,7 @@ export default function Home() {
     // update local state after database operations succeed
     const newChat: ChatType = {
       id: newChatID,
-      name: "(New Chat)",
+      name: "New Chat",
     };
     setChats((prevChats) => {
       // Check if chat with same ID already exists

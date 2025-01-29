@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 import {
   DropdownMenu,
@@ -67,6 +67,17 @@ const SavedChat = ({
 
     if (response.error) console.error(response.error);
   }
+
+  // update title to current selected chat name
+  useEffect(() => {
+    if (selectedChatID === chat_id) {
+      if (name !== "New Chat") {
+        document.title = name;
+      } else {
+        document.title = "BranchingChat";
+      }
+    }
+  }, [name, selectedChatID, chat_id]);
 
   return (
     <div
