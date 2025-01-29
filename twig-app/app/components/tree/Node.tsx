@@ -388,12 +388,10 @@ export default function Node({
         className={`${data.label === "user" ? "user-node" : ""} cursor-default`}
       >
         <div
-          className={`${
-            data.label === "user" ? "bg-gray-50" : "bg-white"
-          } border 
-          ${
-            data.label === "user" ? "border-gray-400" : "border-gray-300"
-          } rounded-lg w-[800px] p-2`}
+          className={`${data.label === "user" ? "bg-gray-100" : "bg-white"} 
+          border 
+          ${data.label === "user" ? "border-gray-400" : "border-gray-300"} 
+          rounded-2xl w-[800px] p-3`}
         >
           <div className="flex justify-between text-xs text-gray-400 mb-1">
             <div>{data.label === "user" ? "you" : data.model_name}</div>
@@ -456,7 +454,7 @@ export default function Node({
               }}
               onHeightChange={onHeightChange}
               ref={textareaRef}
-              className="nopan bg-gray-50" // nopan so that highlighting in the textarea doesn't drag the tree view
+              className="nopan bg-gray-100" // nopan so that highlighting in the textarea doesn't drag the tree view
               style={{
                 width: "100%",
                 border: "none",
@@ -547,6 +545,7 @@ export default function Node({
             style={{
               visibility: data.parent_id ? "visible" : "hidden",
             }}
+            // style={{ visibility: "hidden" }}
           />
         )}
         {data.height > 1 && (
@@ -560,6 +559,7 @@ export default function Node({
                   ? "hidden"
                   : "visible",
             }}
+            // style={{ visibility: "hidden" }}
           />
         )}
       </div>

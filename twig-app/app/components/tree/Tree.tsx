@@ -1,6 +1,5 @@
 import {
   ReactFlow,
-  Background,
   applyEdgeChanges,
   applyNodeChanges,
   MiniMap,
@@ -357,7 +356,6 @@ export default function Tree({ selectedChatID, setChats }: Props) {
           [Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY],
         ]}
       >
-        <Background />
         {showWelcome && (
           <div className="fixed w-full top-[32%] flex flex-col items-center justify-center">
             <div className="text-[25px] font-semibold">
