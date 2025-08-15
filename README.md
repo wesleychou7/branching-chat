@@ -1,3 +1,3 @@
 # Welcome to BranchingChat.com
-# Try for free: branchingchat.com
+Try for free: <a>branchingchat.com</a>
  
