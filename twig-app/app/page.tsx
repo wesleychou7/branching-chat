@@ -107,12 +107,10 @@ export default function Home() {
   // Initialize refs with localStorage values when dialog opens
   const handleDialogOpen = () => {
     if (openaiInputRef.current) {
-      openaiInputRef.current.value =
-        localStorage.getItem("openai-api-key") || "";
+      openaiInputRef.current.value = localStorage.getItem("openai-api-key") || "";
     }
     if (anthropicInputRef.current) {
-      anthropicInputRef.current.value =
-        localStorage.getItem("anthropic-api-key") || "";
+      anthropicInputRef.current.value = localStorage.getItem("anthropic-api-key") || "";
     }
     setDialogOpen(true);
   };
@@ -140,10 +138,7 @@ export default function Home() {
   const handleSaveChanges = () => {
     // Save api keys to localStorage
     localStorage.setItem("openai-api-key", openaiInputRef.current?.value || "");
-    localStorage.setItem(
-      "anthropic-api-key",
-      anthropicInputRef.current?.value || ""
-    );
+    localStorage.setItem("anthropic-api-key", anthropicInputRef.current?.value || "");
     setDialogOpen(false);
     checkAPIKeys();
   };
@@ -332,7 +327,7 @@ export default function Home() {
         <div className="w-screen h-screen">
           {!isLoading && (
             <>
-              <div className="fixed top-2 right-3 z-50">
+              {/* <div className="fixed top-2 right-3 z-50">
                 {session && <Profile session={session} />}
                 {!session && (
                   <Tooltip
@@ -345,7 +340,7 @@ export default function Home() {
                     </div>
                   </Tooltip>
                 )}
-              </div>
+              </div> */}
               <div
                 className={`fixed top-0 left-0 z-50 h-full w-[252px] duration-300 ${
                   sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -404,9 +399,7 @@ export default function Home() {
                         >
                           GPT-4o
                           {!localStorage.getItem("openai-api-key") && (
-                            <DropdownMenuShortcut>
-                              API Key required
-                            </DropdownMenuShortcut>
+                            <DropdownMenuShortcut>API Key required</DropdownMenuShortcut>
                           )}
                         </DropdownMenuItem>
                         <DropdownMenuItem
@@ -419,9 +412,7 @@ export default function Home() {
                         >
                           GPT-4o mini
                           {!localStorage.getItem("openai-api-key") && (
-                            <DropdownMenuShortcut>
-                              API Key required
-                            </DropdownMenuShortcut>
+                            <DropdownMenuShortcut>API Key required</DropdownMenuShortcut>
                           )}
                         </DropdownMenuItem>
                         <DropdownMenuItem
@@ -434,9 +425,7 @@ export default function Home() {
                         >
                           Claude 3.5 Sonnet
                           {!localStorage.getItem("anthropic-api-key") && (
-                            <DropdownMenuShortcut>
-                              API Key required
-                            </DropdownMenuShortcut>
+                            <DropdownMenuShortcut>API Key required</DropdownMenuShortcut>
                           )}
                         </DropdownMenuItem>
                         <DropdownMenuItem
@@ -449,18 +438,13 @@ export default function Home() {
                         >
                           Claude 3.5 Haiku
                           {!localStorage.getItem("anthropic-api-key") && (
-                            <DropdownMenuShortcut>
-                              API Key required
-                            </DropdownMenuShortcut>
+                            <DropdownMenuShortcut>API Key required</DropdownMenuShortcut>
                           )}
                         </DropdownMenuItem>
 
                         <DropdownMenuSeparator />
 
-                        <DropdownMenuItem
-                          onClick={handleDialogOpen}
-                          className="cursor-pointer"
-                        >
+                        <DropdownMenuItem onClick={handleDialogOpen} className="cursor-pointer">
                           My API Keys <FaKey />
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -474,8 +458,8 @@ export default function Home() {
                   <DialogHeader>
                     <DialogTitle>API Keys</DialogTitle>
                     <DialogDescription>
-                      Insert your API keys here. Your keys will only be stored
-                      locally in your browser.
+                      Insert your API keys here. Your keys will only be stored locally in your
+                      browser.
                     </DialogDescription>
                   </DialogHeader>
 
@@ -489,9 +473,7 @@ export default function Home() {
                         ref={openaiInputRef}
                         className="col-span-3"
                         type="password"
-                        defaultValue={
-                          localStorage.getItem("openai-api-key") || ""
-                        }
+                        defaultValue={localStorage.getItem("openai-api-key") || ""}
                       />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
@@ -503,9 +485,7 @@ export default function Home() {
                         ref={anthropicInputRef}
                         className="col-span-3"
                         type="password"
-                        defaultValue={
-                          localStorage.getItem("anthropic-api-key") || ""
-                        }
+                        defaultValue={localStorage.getItem("anthropic-api-key") || ""}
                       />
                     </div>
                   </div>
